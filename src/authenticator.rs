@@ -33,6 +33,10 @@ impl Authenticator {
     pub fn get_token_uri(&self) -> &str {
         self.token_uri.as_ref()
     }
+
+    pub fn get_auth_params(&self) -> Vec<(&str, String)> {
+        vec![("client_id", self.client_id.clone())]
+    }
 }
 
 #[cfg(test)]
@@ -58,6 +62,16 @@ mod tests {
                                 .from_env::<Authenticator>()
                                 .ok()
                                 .expect("Failed to Serialize Authenticator from .env");
+                        });
+
+                        ctx.context("#get_auth_params", |ctx| {
+                            ctx.it("Has pushes the client_id in the params", |env| {
+                                let result = env.get_auth_params();
+                                assert!(result.contains(&(
+                                    "client_id",
+                                    String::from("example_foobar_whatever@example.com"),
+                                )));
+                            })
                         });
 
                         ctx.context("Authenticator Attributes", |ctx| {
