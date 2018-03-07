@@ -34,8 +34,20 @@ impl PrimeAuthenticator {
         self.token_uri.as_ref()
     }
 
-    pub fn get_auth_params(&self) -> Vec<(&str, String)> {
-        vec![("client_id", self.client_id.clone())]
+    pub fn get_auth_params(
+        &self,
+        redirect_uri: &str,
+        scopes: Option<Vec<String>>,
+    ) -> Vec<(&str, String)> {
+        let parsed_scopes: Vec<(&str, String)> = scopes.map_or(Vec::new(), |scope| {
+            scope.into_iter().map(|s| ("scope", s)).collect()
+        });
+        vec![
+            ("client_id", self.client_id.clone()),
+            ("redirect_uri", String::from(redirect_uri)),
+        ].into_iter()
+            .chain(parsed_scopes)
+            .collect()
     }
 }
 
@@ -65,13 +77,34 @@ mod tests {
                         });
 
                         ctx.context("#get_auth_params", |ctx| {
-                            ctx.it("Has pushes the client_id in the params", |env| {
-                                let result = env.get_auth_params();
+                            ctx.it("pushes the client_id in the params", |env| {
+                                let result = env.get_auth_params("", None);
                                 assert!(result.contains(&(
                                     "client_id",
                                     String::from("example_foobar_whatever@example.com"),
                                 )));
-                            })
+                            });
+
+                            ctx.it("pushes the redirect_uri into params", |env| {
+                                let result = env.get_auth_params("https://localhost:8000", None);
+                                assert!(result.contains(&(
+                                    "redirect_uri",
+                                    String::from("https://localhost:8000"),
+                                )));
+                                assert_eq!(result.len(), 2);
+                            });
+
+                            ctx.it("pushes the scopes into params", |env| {
+                                let result = env.get_auth_params(
+                                    "https:://localhost:8080",
+                                    Some(vec![
+                                        "user.profile".to_string(),
+                                        "user.openid".to_string(),
+                                    ]),
+                                );
+                                assert!(result.contains(&("scope", String::from("user.profile"),)));
+                                assert!(result.contains(&("scope", String::from("user.openid"),)));
+                            });
                         });
 
                         ctx.context("PrimeAuthenticator Attributes", |ctx| {
