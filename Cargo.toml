@@ -1,0 +1,17 @@
+[package]
+name = "async-oauth2"
+version = "0.1.0"
+authors = ["Justin Hurst <jryanhurst@gmail.com>"]
+
+[dependencies]
+futures = "0.1.18"
+
+# Data Serialization
+serde = "~1"
+serde_derive = "~1"
+url = "1.7.0"
+
+[dev_dependencies]
+rspec = "1.0.0-beta.4"
+envy = "0.3"
+dotenv =  "~0.11"
