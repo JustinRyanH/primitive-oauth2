@@ -10,6 +10,7 @@ futures = "0.1.18"
 serde = "~1"
 serde_derive = "~1"
 url = "1.7.0"
+url_serde = "0.2"
 
 [dev_dependencies]
 rspec = "1.0.0-beta.4"

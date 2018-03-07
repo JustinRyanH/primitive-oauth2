@@ -1,9 +1,14 @@
+use url_serde;
+use url::Url;
+
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct PrimeAuthenticator {
     client_id: String,
     client_secret: String,
-    auth_uri: String,
-    token_uri: String,
+    #[serde(with = "url_serde")]
+    auth_uri: Url,
+    #[serde(with = "url_serde")]
+    token_uri: Url,
 }
 
 impl Default for PrimeAuthenticator {
@@ -11,8 +16,8 @@ impl Default for PrimeAuthenticator {
         PrimeAuthenticator {
             client_id: Default::default(),
             client_secret: Default::default(),
-            auth_uri: Default::default(),
-            token_uri: Default::default(),
+            auth_uri: Url::parse("http://localhost/auth").unwrap(),
+            token_uri: Url::parse("http://localhost/token").unwrap(),
         }
     }
 }

@@ -1,5 +1,6 @@
 extern crate futures;
 extern crate url;
+extern crate url_serde;
 
 extern crate serde;
 #[macro_use]
