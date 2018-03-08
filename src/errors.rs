@@ -1,3 +1,5 @@
+use url;
+
 error_chain! {
     types {
         OauthError, OauthErrorKind, Result;
@@ -109,5 +111,9 @@ error_chain! {
             exceeds the scope granted by the resource owner.")
             display("The Given scope scope was invalid")
         }
+    }
+
+    foreign_links {
+        Url(url::ParseError);
     }
 }

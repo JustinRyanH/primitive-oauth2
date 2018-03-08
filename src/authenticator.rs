@@ -1,16 +1,24 @@
-use futures::future::FutureResult;
+use futures::future::{result, FutureResult};
 
 use url_serde;
 use url::Url;
 
-use errors::OauthError;
+use errors::{OauthError, OauthErrorKind};
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct AuthorizationResponseParams {
+    code: String,
+    state: Option<String>,
+}
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct PrimeAuthenticator {
     client_id: String,
     client_secret: String,
-    #[serde(with = "url_serde")] auth_uri: Url,
-    #[serde(with = "url_serde")] token_uri: Url,
+    #[serde(with = "url_serde")]
+    auth_uri: Url,
+    #[serde(with = "url_serde")]
+    token_uri: Url,
 }
 
 impl Default for PrimeAuthenticator {
@@ -58,17 +66,32 @@ impl PrimeAuthenticator {
     }
 }
 
+impl OauthClient for PrimeAuthenticator {
+    fn get_user_auth_url(&self) -> FutureResult<Url, OauthError> {
+        result(Ok(self.auth_uri.clone()))
+    }
+
+    fn recieve_auth_response<T: Sized>(self, _: T) -> FutureResult<PrimeAuthenticator, OauthError> {
+        result(Ok(PrimeAuthenticator {
+            client_id: self.client_id,
+            client_secret: self.client_secret,
+            auth_uri: self.auth_uri,
+            token_uri: self.token_uri,
+        }))
+    }
+}
+
 /// The `OauthClient` trait allows to generate the key components for
 /// each of the [RFC 6749](https://tools.ietf.org/html/rfc6749) client side steps
 pub trait OauthClient: Sized {
     /// Used to implement [4.1.1](https://tools.ietf.org/html/rfc6749#section-4.1.1) Authorization Request
     fn get_user_auth_url(&self) -> FutureResult<Url, OauthError>;
 
-    /// User to handle the [4.1.2](https://tools.ietf.org/html/rfc6749#section-4.1.2) Authorization Response
+    /// `recieve_auth_response` handles the [4.1.2](https://tools.ietf.org/html/rfc6749#section-4.1.2) Authorization Response
     ///
+    /// * `params` - Expected Authorization Response from the server
     /// Error Handling is Defined by [4.1.2.1](https://tools.ietf.org/html/rfc6749#section-4.1.2.1), and should
-    ///
-    fn recieve_auth_response(self, url: Url) -> FutureResult<Self, OauthError>;
+    fn recieve_auth_response<T: Sized>(self, request: T) -> FutureResult<Self, OauthError>;
 }
 
 #[cfg(test)]
