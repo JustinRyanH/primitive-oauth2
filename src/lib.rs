@@ -1,12 +1,20 @@
+//! Used for Implementation Agnostic Asynchronous
+//! Oauth2 Clients
+#![recursion_limit = "300"]
+
 extern crate futures;
 extern crate url;
 extern crate url_serde;
+
+#[macro_use]
+extern crate error_chain;
 
 extern crate serde;
 #[macro_use]
 extern crate serde_derive;
 
-mod authenticator;
+pub mod authenticator;
+pub mod errors;
 
 pub use authenticator::PrimeAuthenticator;
 
