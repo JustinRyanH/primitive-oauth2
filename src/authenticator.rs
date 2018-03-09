@@ -1,18 +1,11 @@
 use futures::future::{result, FutureResult};
-
 use url_serde;
 use url::Url;
 
-use errors::{OauthError, OauthErrorKind};
+use errors::{OauthError};
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct AuthorizationResponseParams {
-    code: String,
-    state: Option<String>,
-}
-
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct PrimeAuthenticator {
+pub struct BaseAuthenticator {
     client_id: String,
     client_secret: String,
     #[serde(with = "url_serde")]
@@ -21,9 +14,9 @@ pub struct PrimeAuthenticator {
     token_uri: Url,
 }
 
-impl Default for PrimeAuthenticator {
+impl Default for BaseAuthenticator {
     fn default() -> Self {
-        PrimeAuthenticator {
+        BaseAuthenticator {
             client_id: Default::default(),
             client_secret: Default::default(),
             auth_uri: Url::parse("http://localhost/auth").unwrap(),
@@ -32,7 +25,7 @@ impl Default for PrimeAuthenticator {
     }
 }
 
-impl PrimeAuthenticator {
+impl BaseAuthenticator {
     pub fn get_client_id(&self) -> &str {
         self.client_id.as_ref()
     }
@@ -66,32 +59,25 @@ impl PrimeAuthenticator {
     }
 }
 
-impl OauthClient for PrimeAuthenticator {
-    fn get_user_auth_url(&self) -> FutureResult<Url, OauthError> {
-        result(Ok(self.auth_uri.clone()))
-    }
-
-    fn recieve_auth_response<T: Sized>(self, _: T) -> FutureResult<PrimeAuthenticator, OauthError> {
-        result(Ok(PrimeAuthenticator {
-            client_id: self.client_id,
-            client_secret: self.client_secret,
-            auth_uri: self.auth_uri,
-            token_uri: self.token_uri,
-        }))
-    }
-}
-
 /// The `OauthClient` trait allows to generate the key components for
 /// each of the [RFC 6749](https://tools.ietf.org/html/rfc6749) client side steps
 pub trait OauthClient: Sized {
-    /// Used to implement [4.1.1](https://tools.ietf.org/html/rfc6749#section-4.1.1) Authorization Request
-    fn get_user_auth_url(&self) -> FutureResult<Url, OauthError>;
+    /// Used to implement [4.1.1](https://tools.ietf.org/html/rfc6749#section-4.1.1) and 
+    /// [4.2.1](https://tools.ietf.org/html/rfc6749#section-4.2.1) Authorization Request
+    fn get_user_auth_request<R: Sized>(&self) -> FutureResult<R, OauthError>;
 
-    /// `recieve_auth_response` handles the [4.1.2](https://tools.ietf.org/html/rfc6749#section-4.1.2) Authorization Response
-    ///
-    /// * `params` - Expected Authorization Response from the server
-    /// Error Handling is Defined by [4.1.2.1](https://tools.ietf.org/html/rfc6749#section-4.1.2.1), and should
-    fn recieve_auth_response<T: Sized>(self, request: T) -> FutureResult<Self, OauthError>;
+    /// Handles the [4.1.2](https://tools.ietf.org/html/rfc6749#section-4.1.2) Authorization Response
+    fn handle_auth_response<R: Sized>(self, response: R) -> FutureResult<Self, OauthError>;
+
+    /// Used to implement [4.1.3](https://tools.ietf.org/html/rfc6749#section-4.1.3) Token Request
+    fn get_user_token_request<R: Sized>(&self) -> FutureResult<R, OauthError>;
+
+    /// Handles the [4.1.4](https://tools.ietf.org/html/rfc6749#section-4.1.4) Token Response
+    fn handle_token_response<R: Sized>(self, response: R) -> FutureResult<Self, OauthError>;
+
+    /// Used to implement [4.6](https://tools.ietf.org/html/rfc6749#section-4.1.4) Token Refresh Reqeust
+    fn get_token_refresh_request<R: Sized>(self, response: R) -> FutureResult<Self, OauthError>;
+
 }
 
 #[cfg(test)]
@@ -106,17 +92,17 @@ mod tests {
     fn authenticator_is_serializable() {
         dotenv::dotenv().expect("Failed to read the `.env` file");
         rspec::run(&given(
-            "An PrimeAuthenticator",
-            PrimeAuthenticator::default(),
+            "An BaseAuthenticator",
+            BaseAuthenticator::default(),
             |ctx| {
                 ctx.context(
-                    "When creating PrimeAuthenticator with envy and/or another serde serializer",
+                    "When creating BaseAuthenticator with envy and/or another serde serializer",
                     |ctx| {
                         ctx.before_each(|env| {
                             *env = envy::prefixed("EXAMPLE_OAUTH2_")
-                                .from_env::<PrimeAuthenticator>()
+                                .from_env::<BaseAuthenticator>()
                                 .ok()
-                                .expect("Failed to Serialize PrimeAuthenticator from .env");
+                                .expect("Failed to Serialize BaseAuthenticator from .env");
                         });
 
                         ctx.context("#get_auth_params", |ctx| {
@@ -150,54 +136,54 @@ mod tests {
                             });
                         });
 
-                        ctx.context("PrimeAuthenticator Attributes", |ctx| {
+                        ctx.context("BaseAuthenticator Attributes", |ctx| {
                             ctx.it(
-                                "then creates an PrimeAuthenticator Object with a client id",
+                                "then creates an BaseAuthenticator Object with a client id",
                                 |env| {
                                     let expected_client_id = "example_foobar_whatever@example.com";
                                     let actual_client_id = env.get_client_id();
                                     assert_eq!(
                                         actual_client_id, expected_client_id,
-                                        "Expected PrimeAuthenticator's client_id to eq {}, but got {}",
+                                        "Expected BaseAuthenticator's client_id to eq {}, but got {}",
                                         expected_client_id, actual_client_id
                                     );
                                 },
                             );
 
                             ctx.it(
-                                "then creates an PrimeAuthenticator Object with a client secret",
+                                "then creates an BaseAuthenticator Object with a client secret",
                                 |env| {
                                     let expected_client_secret = "super_secret";
                                     let actual_client_secret = env.get_client_secret();
                                     assert_eq!(
                                     actual_client_secret, expected_client_secret,
-                                    "Expected PrimeAuthenticator's client_secret to eq {}, but got {}",
+                                    "Expected BaseAuthenticator's client_secret to eq {}, but got {}",
                                     expected_client_secret, actual_client_secret
                                 );
                                 },
                             );
 
                             ctx.it(
-                                "then creates an PrimeAuthenticator Object with a auth uri",
+                                "then creates an BaseAuthenticator Object with a auth uri",
                                 |env| {
                                     let expected_auth_uri = "https://example.com/v1/auth";
                                     let actual_auth_uri = env.get_auth_uri();
                                     assert_eq!(
                                         actual_auth_uri, expected_auth_uri,
-                                        "Expected PrimeAuthenticator's auth_uri to eq {}, but got {}",
+                                        "Expected BaseAuthenticator's auth_uri to eq {}, but got {}",
                                         expected_auth_uri, actual_auth_uri
                                     );
                                 },
                             );
 
                             ctx.it(
-                                "then creates an PrimeAuthenticator Object with a token uri",
+                                "then creates an BaseAuthenticator Object with a token uri",
                                 |env| {
                                     let expected_token_uri = "https://example.com/v1/token";
                                     let actual_token_uri = env.get_token_uri();
                                     assert_eq!(
                                         actual_token_uri, expected_token_uri,
-                                        "Expected PrimeAuthenticator's token_uri to eq {}, but got {}",
+                                        "Expected BaseAuthenticator's token_uri to eq {}, but got {}",
                                         expected_token_uri, actual_token_uri
                                     );
                                 },

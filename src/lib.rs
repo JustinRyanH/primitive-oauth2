@@ -16,7 +16,7 @@ extern crate serde_derive;
 pub mod authenticator;
 pub mod errors;
 
-pub use authenticator::PrimeAuthenticator;
+pub use authenticator::BaseAuthenticator;
 
 // SPEC ONLY CRATES
 #[cfg(test)]
