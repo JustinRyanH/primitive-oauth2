@@ -13,10 +13,8 @@ extern crate serde;
 #[macro_use]
 extern crate serde_derive;
 
-pub mod authenticator;
 pub mod errors;
-
-pub use authenticator::BaseAuthenticator;
+pub mod client;
 
 // SPEC ONLY CRATES
 #[cfg(test)]
@@ -25,3 +23,7 @@ extern crate dotenv;
 extern crate envy;
 #[cfg(test)]
 extern crate rspec;
+#[cfg(test)]
+extern crate futures_cpupool;
+#[cfg(test)]
+#[macro_use] extern crate spectral;

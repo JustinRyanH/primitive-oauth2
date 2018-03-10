@@ -1,10 +1,6 @@
 use url;
 
 error_chain! {
-    types {
-        OauthError, OauthErrorKind, Result;
-    }
-
     errors {
         /// `InvalidRequest` for generic bad request to the Authentication Server
         ///

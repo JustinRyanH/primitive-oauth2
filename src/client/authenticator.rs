@@ -1,17 +1,28 @@
-use futures::future::{result, FutureResult};
 use url_serde;
 use url::Url;
-
-use errors::{OauthError};
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct BaseAuthenticator {
     client_id: String,
     client_secret: String,
-    #[serde(with = "url_serde")]
-    auth_uri: Url,
-    #[serde(with = "url_serde")]
-    token_uri: Url,
+    #[serde(with = "url_serde")] auth_uri: Url,
+    #[serde(with = "url_serde")] token_uri: Url,
+}
+
+impl BaseAuthenticator {
+    pub fn new<S: Into<String>>(
+        client_id: S,
+        client_secret: S,
+        auth_uri: Url,
+        token_uri: Url,
+    ) -> BaseAuthenticator {
+        BaseAuthenticator {
+            client_id: client_id.into(),
+            client_secret: client_secret.into(),
+            auth_uri,
+            token_uri,
+        }
+    }
 }
 
 impl Default for BaseAuthenticator {
@@ -45,11 +56,9 @@ impl BaseAuthenticator {
     pub fn get_auth_params(
         &self,
         redirect_uri: &str,
-        scopes: Option<Vec<String>>,
+        scopes: &Vec<String>,
     ) -> Vec<(&str, String)> {
-        let parsed_scopes: Vec<(&str, String)> = scopes.map_or(Vec::new(), |scope| {
-            scope.into_iter().map(|s| ("scope", s)).collect()
-        });
+        let parsed_scopes: Vec<(&str, String)> = scopes.into_iter().map(|scope| ("scope", scope.clone())).collect();
         vec![
             ("client_id", self.client_id.clone()),
             ("redirect_uri", String::from(redirect_uri)),
@@ -57,27 +66,6 @@ impl BaseAuthenticator {
             .chain(parsed_scopes)
             .collect()
     }
-}
-
-/// The `OauthClient` trait allows to generate the key components for
-/// each of the [RFC 6749](https://tools.ietf.org/html/rfc6749) client side steps
-pub trait OauthClient: Sized {
-    /// Used to implement [4.1.1](https://tools.ietf.org/html/rfc6749#section-4.1.1) and 
-    /// [4.2.1](https://tools.ietf.org/html/rfc6749#section-4.2.1) Authorization Request
-    fn get_user_auth_request<R: Sized>(&self) -> FutureResult<R, OauthError>;
-
-    /// Handles the [4.1.2](https://tools.ietf.org/html/rfc6749#section-4.1.2) Authorization Response
-    fn handle_auth_response<R: Sized>(self, response: R) -> FutureResult<Self, OauthError>;
-
-    /// Used to implement [4.1.3](https://tools.ietf.org/html/rfc6749#section-4.1.3) Token Request
-    fn get_user_token_request<R: Sized>(&self) -> FutureResult<R, OauthError>;
-
-    /// Handles the [4.1.4](https://tools.ietf.org/html/rfc6749#section-4.1.4) Token Response
-    fn handle_token_response<R: Sized>(self, response: R) -> FutureResult<Self, OauthError>;
-
-    /// Used to implement [4.6](https://tools.ietf.org/html/rfc6749#section-4.1.4) Token Refresh Reqeust
-    fn get_token_refresh_request<R: Sized>(self, response: R) -> FutureResult<Self, OauthError>;
-
 }
 
 #[cfg(test)]
@@ -107,7 +95,7 @@ mod tests {
 
                         ctx.context("#get_auth_params", |ctx| {
                             ctx.it("pushes the client_id in the params", |env| {
-                                let result = env.get_auth_params("", None);
+                                let result = env.get_auth_params("", &vec![]);
                                 assert!(result.contains(&(
                                     "client_id",
                                     String::from("example_foobar_whatever@example.com"),
@@ -115,7 +103,7 @@ mod tests {
                             });
 
                             ctx.it("pushes the redirect_uri into params", |env| {
-                                let result = env.get_auth_params("https://localhost:8000", None);
+                                let result = env.get_auth_params("https://localhost:8000", &vec![]);
                                 assert!(result.contains(&(
                                     "redirect_uri",
                                     String::from("https://localhost:8000"),
@@ -126,10 +114,10 @@ mod tests {
                             ctx.it("pushes the scopes into params", |env| {
                                 let result = env.get_auth_params(
                                     "https:://localhost:8080",
-                                    Some(vec![
+                                    &vec![
                                         "user.profile".to_string(),
                                         "user.openid".to_string(),
-                                    ]),
+                                    ],
                                 );
                                 assert!(result.contains(&("scope", String::from("user.profile"),)));
                                 assert!(result.contains(&("scope", String::from("user.openid"),)));
