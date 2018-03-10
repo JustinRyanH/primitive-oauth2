@@ -26,4 +26,4 @@ extern crate rspec;
 #[cfg(test)]
 extern crate futures_cpupool;
 #[cfg(test)]
-#[macro_use] extern crate spectral;
+extern crate spectral;
