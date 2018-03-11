@@ -1,6 +1,12 @@
 //! Client for RFC 6749, a.k.a, OAuth 2.0 Framework
 pub mod authenticator;
 pub mod mock_client;
+pub mod params;
+
+#[cfg(test)]
+pub mod params_test;
+// #[cfg(test)]
+// pub mod mock_client_test;
 
 use futures::future::FutureResult;
 use errors::Error;
