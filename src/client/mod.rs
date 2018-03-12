@@ -2,6 +2,7 @@
 pub mod authenticator;
 pub mod mock_client;
 pub mod params;
+pub mod storage;
 
 #[cfg(test)]
 pub mod params_test;
@@ -16,6 +17,7 @@ use errors::Error;
 pub trait OauthClient: Sized {
     type Request;
     type Response;
+    // TODO: Add Type Error
     /// Used to implement [4.1.1](https://tools.ietf.org/html/rfc6749#section-4.1.1) and
     /// [4.2.1](https://tools.ietf.org/html/rfc6749#section-4.2.1) Authorization Request
     fn get_user_auth_request(&self) -> FutureResult<Self::Request, Error>;
