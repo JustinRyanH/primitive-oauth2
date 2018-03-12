@@ -4,6 +4,7 @@ use futures::Future;
 use futures_cpupool::CpuPool;
 use rspec::{self, given};
 use spectral::prelude::*;
+use url;
 
 use client::mock_client::*;
 use client::params::params_into_hash;
@@ -41,7 +42,16 @@ fn mock_client() {
                         .contains_key("response_type".to_string())
                         .is_equal_to("code".to_string());
                 },
-            )
+            );
         });
+
+        ctx.context("Handles auth request from auth server", |ctx| {
+            ctx.it("creates a MockClient from request", move |client| {
+                let mock_request = mock_client::MockReq {
+                    url: Url::parse("https://localhost:8080"),
+                    body: "".to_string(),
+                };
+            });
+        })
     }));
 }
