@@ -42,10 +42,17 @@ pub fn params_into_hash(params: &Vec<(String, String)>) -> HashMap<String, Param
         .fold(HashMap::new(), |mut acc, &(ref key, ref value)| {
             let new_value: ParamValue = match acc.get(key) {
                 Some(v) => match v {
-                    &ParamValue::Single(ref sv) => ParamValue::Multi(vec![sv.clone(), value.clone()]),
-                    &ParamValue::Multi(ref mv) => ParamValue::Multi(mv.clone().into_iter().chain(vec![value.clone()].into_iter()).collect()),
+                    &ParamValue::Single(ref sv) => {
+                        ParamValue::Multi(vec![sv.clone(), value.clone()])
+                    }
+                    &ParamValue::Multi(ref mv) => ParamValue::Multi(
+                        mv.clone()
+                            .into_iter()
+                            .chain(vec![value.clone()].into_iter())
+                            .collect(),
+                    ),
                 },
-                None => ParamValue::Single(value.clone())
+                None => ParamValue::Single(value.clone()),
             };
 
             acc.insert(key.clone(), new_value);
@@ -58,11 +65,11 @@ pub mod test_helpers {
     use super::*;
     use spectral::{AssertionFailure, Spec};
 
-    pub trait HasMulti<'s> {
+    pub trait ParamValueHelper<'s> {
         fn have_multiple_values(&mut self) -> Spec<'s, Vec<String>>;
     }
 
-    impl<'s> HasMulti<'s> for Spec<'s, ParamValue> {
+    impl<'s> ParamValueHelper<'s> for Spec<'s, ParamValue> {
         fn have_multiple_values(&mut self) -> Spec<'s, Vec<String>> {
             let subject = self.subject;
 

@@ -1,15 +1,16 @@
 use rspec::{self, given};
 use spectral::prelude::*;
 
-use client::params::{ParamValue, params_into_hash};
-use client::params::test_helpers::HasMulti;
-
+use client::params::{params_into_hash, ParamValue};
+use client::params::test_helpers::ParamValueHelper;
 
 #[test]
 fn spectral_param_value_have_multiple_values() {
     let ref multi_param = ParamValue::Multi(vec!["a".to_string(), "b".to_string()]);
 
-    assert_that(multi_param).have_multiple_values().has_length(2);
+    assert_that(multi_param)
+        .have_multiple_values()
+        .has_length(2);
 }
 
 #[test]
@@ -29,7 +30,10 @@ fn mock_client() {
                 });
                 ctx.it("then places them in a Vector of Strings", |env| {
                     let multi = params_into_hash(env);
-                    assert_that(&multi).contains_key(&"scope".to_string()).have_multiple_values().has_length(3);
+                    assert_that(&multi)
+                        .contains_key(&"scope".to_string())
+                        .have_multiple_values()
+                        .has_length(3);
                 })
             });
         },
