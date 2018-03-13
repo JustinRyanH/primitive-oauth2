@@ -1,11 +1,43 @@
+use std::collections::HashMap;
+use std::ops::Deref;
+
 use futures::future::FutureResult;
 
-pub trait OauthStorage: Sized {
-    type Error;
-    type Lookup;
-    type Value;
+use errors::Error;
+use client::ClientStorage;
+use client::mock_client::MockClient;
 
-    fn set(&mut self, lookup: Self::Lookup, value: Self::Value) -> FutureResult<Self, Self::Error>;
-    fn get(&self, lookup: Self::Lookup) -> FutureResult<Self::Value, Self::Error>;
-    fn drop(&mut self, lookup: Self::Lookup) -> FutureResult<(Self, Self::Value), Self::Error>;
+pub struct MockMemoryStorage(HashMap<MockStorageKey, MockClient>);
+
+pub enum MockStorageKey {
+    State(String),
+    Uid(usize),
+}
+
+impl Deref for MockMemoryStorage {
+    type Target = HashMap<MockStorageKey, MockClient>;
+
+    fn deref(&self) -> &HashMap<MockStorageKey, MockClient> {
+        &self.0
+    }
+}
+
+impl ClientStorage<MockClient> for MockMemoryStorage {
+    type Error = Error;
+    type Lookup = MockStorageKey;
+
+    fn set(
+        &mut self,
+        _lookup: MockStorageKey,
+        _value: MockClient,
+    ) -> FutureResult<MockClient, Error> {
+        unimplemented!()
+    }
+
+    fn get(&self, _lookup: MockStorageKey) -> FutureResult<MockClient, Self::Error> {
+        unimplemented!()
+    }
+    fn drop(&mut self, _lookup: MockStorageKey) -> FutureResult<MockClient, Self::Error> {
+        unimplemented!()
+    }
 }

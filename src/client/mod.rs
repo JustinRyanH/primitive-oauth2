@@ -6,8 +6,10 @@ pub mod storage;
 
 #[cfg(test)]
 pub mod params_test;
-// #[cfg(test)]
-// pub mod mock_client_test;
+#[cfg(test)]
+pub mod storage_test;
+#[cfg(test)]
+pub mod mock_client_test;
 
 use futures::future::FutureResult;
 use errors::Error;
@@ -33,4 +35,15 @@ pub trait OauthClient: Sized {
 
     // Used to implement [4.6](https://tools.ietf.org/html/rfc6749#section-4.1.4) Token Refresh Reqeust
     // fn get_token_refresh_request(self, response: Self::Response) -> FutureResult<Self, Error>;
+}
+
+/// Used to Storage Client between the authentication Steps
+pub trait ClientStorage<C: Sized + OauthClient>: Sized {
+    type Error;
+    type Lookup;
+
+    /// Stores
+    fn set(&mut self, lookup: Self::Lookup, value: C) -> FutureResult<C, Self::Error>;
+    fn get(&self, lookup: Self::Lookup) -> FutureResult<C, Self::Error>;
+    fn drop(&mut self, lookup: Self::Lookup) -> FutureResult<C, Self::Error>;
 }
