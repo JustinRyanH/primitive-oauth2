@@ -7,8 +7,10 @@ use errors::Error;
 use client::ClientStorage;
 use client::mock_client::MockClient;
 
+#[derive(Debug, Clone)]
 pub struct MockMemoryStorage(HashMap<MockStorageKey, MockClient>);
 
+#[derive(Debug, Clone, Eq, PartialEq, Serialize, Deserialize, Hash)]
 pub enum MockStorageKey {
     State(String),
     Uid(usize),

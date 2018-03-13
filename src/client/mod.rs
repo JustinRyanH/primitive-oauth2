@@ -16,7 +16,7 @@ pub mod authenticator_test;
 use futures::future::FutureResult;
 use errors::Error;
 
-#[derive(Debug, Clone, Copy, PartialEq)]
+#[derive(Debug, Clone, Copy, PartialEq, Serialize, Deserialize, Hash)]
 pub enum AccessType {
     Implicit,
     Grant,

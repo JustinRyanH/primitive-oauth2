@@ -22,7 +22,7 @@ where
     pub body: T,
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct MockClient {
     pub auth: BaseAuthenticator,
     pub scopes: Vec<String>,
