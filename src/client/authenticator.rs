@@ -1,12 +1,16 @@
 use url_serde;
 use url::Url;
 
+use client::AccessType;
+
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct BaseAuthenticator {
     client_id: String,
     client_secret: String,
-    #[serde(with = "url_serde")] auth_uri: Url,
-    #[serde(with = "url_serde")] token_uri: Url,
+    #[serde(with = "url_serde")]
+    auth_uri: Url,
+    #[serde(with = "url_serde")]
+    token_uri: Url,
 }
 
 impl BaseAuthenticator {
@@ -57,11 +61,16 @@ impl BaseAuthenticator {
         &self,
         redirect_uri: &str,
         scopes: &Vec<String>,
+        access_type: AccessType,
     ) -> Vec<(&str, String)> {
-        let parsed_scopes: Vec<(&str, String)> = scopes.into_iter().map(|scope| ("scope", scope.clone())).collect();
+        let parsed_scopes: Vec<(&str, String)> = scopes
+            .into_iter()
+            .map(|scope| ("scope", scope.clone()))
+            .collect();
         vec![
             ("client_id", self.client_id.clone()),
             ("redirect_uri", String::from(redirect_uri)),
+            ("response_type", access_type.get_response_type().to_string()),
         ].into_iter()
             .chain(parsed_scopes)
             .collect()
@@ -95,7 +104,7 @@ mod tests {
 
                         ctx.context("#get_auth_params", |ctx| {
                             ctx.it("pushes the client_id in the params", |env| {
-                                let result = env.get_auth_params("", &vec![]);
+                                let result = env.get_auth_params("", &vec![], AccessType::Grant);
                                 assert!(result.contains(&(
                                     "client_id",
                                     String::from("example_foobar_whatever@example.com"),
@@ -103,21 +112,23 @@ mod tests {
                             });
 
                             ctx.it("pushes the redirect_uri into params", |env| {
-                                let result = env.get_auth_params("https://localhost:8000", &vec![]);
+                                let result = env.get_auth_params(
+                                    "https://localhost:8000",
+                                    &vec![],
+                                    AccessType::Grant,
+                                );
                                 assert!(result.contains(&(
                                     "redirect_uri",
                                     String::from("https://localhost:8000"),
                                 )));
-                                assert_eq!(result.len(), 2);
+                                assert_eq!(result.len(), 3);
                             });
 
                             ctx.it("pushes the scopes into params", |env| {
                                 let result = env.get_auth_params(
                                     "https:://localhost:8080",
-                                    &vec![
-                                        "user.profile".to_string(),
-                                        "user.openid".to_string(),
-                                    ],
+                                    &vec!["user.profile".to_string(), "user.openid".to_string()],
+                                    AccessType::Grant,
                                 );
                                 assert!(result.contains(&("scope", String::from("user.profile"),)));
                                 assert!(result.contains(&("scope", String::from("user.openid"),)));

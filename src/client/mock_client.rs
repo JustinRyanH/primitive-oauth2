@@ -3,23 +3,8 @@ use url::Url;
 use serde::de::DeserializeOwned;
 
 use errors::{Error, Result};
-use client::OauthClient;
+use client::{AccessType, OauthClient};
 use client::authenticator::BaseAuthenticator;
-
-#[derive(Debug, Clone, Copy)]
-pub enum AccessType {
-    Implicit,
-    Grant,
-}
-
-impl AccessType {
-    pub fn get_response_type(&self) -> &'static str {
-        match self {
-            &AccessType::Implicit => "token",
-            &AccessType::Grant => "code",
-        }
-    }
-}
 
 pub struct MockReq<T>
 where
@@ -70,7 +55,8 @@ impl OauthClient for MockClient {
     fn get_user_auth_request(&self) -> FutureResult<MockReq<String>, Error> {
         let url = match Url::parse_with_params(
             self.auth.get_auth_uri(),
-            self.auth.get_auth_params(&self.redirect_uri, &self.scopes),
+            self.auth
+                .get_auth_params(&self.redirect_uri, &self.scopes, self.access_type),
         ) {
             Ok(u) => u,
             Err(e) => return result(Err(e.into())),

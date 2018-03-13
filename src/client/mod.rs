@@ -14,6 +14,21 @@ pub mod mock_client_test;
 use futures::future::FutureResult;
 use errors::Error;
 
+#[derive(Debug, Clone, Copy, PartialEq)]
+pub enum AccessType {
+    Implicit,
+    Grant,
+}
+
+impl AccessType {
+    pub fn get_response_type(&self) -> &'static str {
+        match self {
+            &AccessType::Implicit => "token",
+            &AccessType::Grant => "code",
+        }
+    }
+}
+
 /// The `OauthClient` trait allows to generate the key components for
 /// each of the [RFC 6749](https://tools.ietf.org/html/rfc6749) client side steps
 pub trait OauthClient: Sized {
