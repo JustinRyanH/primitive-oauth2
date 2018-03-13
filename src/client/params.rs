@@ -66,10 +66,30 @@ pub mod test_helpers {
     use spectral::{AssertionFailure, Spec};
 
     pub trait ParamValueHelper<'s> {
+        fn have_a_single_value(&mut self) -> Spec<'s, String>;
         fn have_multiple_values(&mut self) -> Spec<'s, Vec<String>>;
     }
 
     impl<'s> ParamValueHelper<'s> for Spec<'s, ParamValue> {
+        fn have_a_single_value(&mut self) -> Spec<'s, String> {
+            let subject = self.subject;
+
+            if let Some(value) = subject.single() {
+                return Spec {
+                    subject: value,
+                    subject_name: self.subject_name,
+                    location: self.location.clone(),
+                    description: self.description.clone(),
+                };
+            } else {
+                AssertionFailure::from_spec(self)
+                    .with_expected(format!("ParamValue to be: Single(String)"))
+                    .with_actual(format!("ParamValue to be: {:?}", subject))
+                    .fail();
+            }
+            unreachable!()
+        }
+
         fn have_multiple_values(&mut self) -> Spec<'s, Vec<String>> {
             let subject = self.subject;
 

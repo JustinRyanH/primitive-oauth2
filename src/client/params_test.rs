@@ -14,6 +14,15 @@ fn spectral_param_value_have_multiple_values() {
 }
 
 #[test]
+fn spectral_param_value_have_a_single_value() {
+    let ref single_param = ParamValue::Single("a".to_string());
+
+    assert_that(single_param)
+        .have_a_single_value()
+        .contains("a")
+}
+
+#[test]
 fn mock_client() {
     let params: Vec<(String, String)> = vec![];
     rspec::run(&given(
