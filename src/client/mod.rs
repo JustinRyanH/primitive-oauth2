@@ -33,7 +33,10 @@ impl AccessType {
 
 /// The `OauthClient` trait allows to generate the key components for
 /// each of the [RFC 6749](https://tools.ietf.org/html/rfc6749) client side steps
-pub trait OauthClient: Sized {
+pub trait OauthClient<S>: Sized
+where
+    S: ClientStorage<Self>,
+{
     type Request;
     type Response;
     // TODO: Add Type Error
@@ -42,7 +45,7 @@ pub trait OauthClient: Sized {
     fn get_user_auth_request(&self) -> FutureResult<Self::Request, Error>;
 
     /// Handles the [4.1.2](https://tools.ietf.org/html/rfc6749#section-4.1.2) Authorization Redirect Request
-    fn handle_auth_request(request: Self::Request) -> FutureResult<Self, Error>;
+    fn handle_auth_request(request: Self::Request, storage: &S) -> FutureResult<Self, Error>;
 
     /// Used to implement [4.1.3](https://tools.ietf.org/html/rfc6749#section-4.1.3) Token Request
     fn get_user_token_request(&self) -> FutureResult<Self::Response, Error>;
@@ -55,7 +58,7 @@ pub trait OauthClient: Sized {
 }
 
 /// Used to Storage Client between the authentication Steps
-pub trait ClientStorage<C: Sized + OauthClient>: Sized {
+pub trait ClientStorage<C: Sized + OauthClient<Self>>: Sized {
     type Error;
     type Lookup;
 

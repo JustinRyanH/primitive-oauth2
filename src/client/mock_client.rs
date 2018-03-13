@@ -4,6 +4,7 @@ use serde::de::DeserializeOwned;
 
 use errors::{Error, Result};
 use client::{AccessType, OauthClient};
+use client::storage::MockMemoryStorage;
 use client::authenticator::BaseAuthenticator;
 
 pub struct MockReq<T>
@@ -48,7 +49,7 @@ impl MockClient {
     }
 }
 
-impl OauthClient for MockClient {
+impl OauthClient<MockMemoryStorage> for MockClient {
     type Request = MockReq<String>;
     type Response = MockResp<String>;
 
@@ -67,7 +68,7 @@ impl OauthClient for MockClient {
         }))
     }
 
-    fn handle_auth_request(_: MockReq<String>) -> FutureResult<Self, Error> {
+    fn handle_auth_request(_: MockReq<String>, _: &MockMemoryStorage) -> FutureResult<Self, Error> {
         unimplemented!()
     }
 
