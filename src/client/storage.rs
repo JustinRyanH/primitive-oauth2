@@ -40,4 +40,8 @@ impl ClientStorage<MockClient> for MockMemoryStorage {
     fn drop(&mut self, _lookup: MockStorageKey) -> FutureResult<MockClient, Self::Error> {
         unimplemented!()
     }
+
+    fn has(&self, _lookup: MockStorageKey) -> FutureResult<bool, Self::Error> {
+        unimplemented!()
+    }
 }

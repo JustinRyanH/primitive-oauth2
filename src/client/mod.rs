@@ -57,8 +57,8 @@ pub trait ClientStorage<C: Sized + OauthClient>: Sized {
     type Error;
     type Lookup;
 
-    /// Stores
     fn set(&mut self, lookup: Self::Lookup, value: C) -> FutureResult<C, Self::Error>;
     fn get(&self, lookup: Self::Lookup) -> FutureResult<C, Self::Error>;
     fn drop(&mut self, lookup: Self::Lookup) -> FutureResult<C, Self::Error>;
+    fn has(&self, lookup: Self::Lookup) -> FutureResult<bool, Self::Error>;
 }
