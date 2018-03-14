@@ -3,8 +3,6 @@ use futures_cpupool::CpuPool;
 use rspec::{self, given};
 use spectral::prelude::*;
 
-use std::ops::Deref;
-
 use client::ClientStorage;
 use client::mock_client::MockClient;
 use client::storage::{MockMemoryStorage, MockStorageKey};
