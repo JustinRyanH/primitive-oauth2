@@ -1,4 +1,5 @@
 use std::collections::HashMap;
+use std::sync::RwLock;
 use std::ops::Deref;
 
 use futures::future::{result, FutureResult};
@@ -7,12 +8,12 @@ use errors::Error;
 use client::ClientStorage;
 use client::mock_client::MockClient;
 
-#[derive(Debug, Clone)]
-pub struct MockMemoryStorage(pub HashMap<MockStorageKey, MockClient>);
+#[derive(Debug)]
+pub struct MockMemoryStorage(pub RwLock<HashMap<MockStorageKey, MockClient>>);
 
 impl MockMemoryStorage {
     pub fn new() -> MockMemoryStorage {
-        MockMemoryStorage(HashMap::new())
+        MockMemoryStorage(RwLock::new(HashMap::new()))
     }
 }
 
@@ -33,9 +34,9 @@ impl MockStorageKey {
 }
 
 impl Deref for MockMemoryStorage {
-    type Target = HashMap<MockStorageKey, MockClient>;
+    type Target = RwLock<HashMap<MockStorageKey, MockClient>>;
 
-    fn deref(&self) -> &HashMap<MockStorageKey, MockClient> {
+    fn deref(&self) -> &RwLock<HashMap<MockStorageKey, MockClient>> {
         &self.0
     }
 }
@@ -48,8 +49,11 @@ impl ClientStorage<MockClient> for MockMemoryStorage {
         &mut self,
         lookup: MockStorageKey,
         value: MockClient,
-    ) -> FutureResult<MockClient, Error> {
-        result(MockClient::new())
+    ) -> FutureResult<Option<MockClient>, Error> {
+        match self.0.write() {
+            Ok(ref mut hash) => result(Ok(hash.insert(lookup, value))),
+            Err(e) => result(Err(e.into())),
+        }
     }
 
     fn get(&self, _lookup: MockStorageKey) -> FutureResult<MockClient, Self::Error> {

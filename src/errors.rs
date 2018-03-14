@@ -1,4 +1,5 @@
 use url;
+use std::sync;
 
 error_chain! {
     errors {
@@ -111,5 +112,11 @@ error_chain! {
 
     foreign_links {
         Url(url::ParseError);
+    }
+}
+
+impl<T> From<sync::PoisonError<T>> for Error {
+    fn from(v: sync::PoisonError<T>) -> Error {
+        Error::from(ErrorKind::Msg(format!("SyncError: {:?}", v)))
     }
 }
