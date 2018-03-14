@@ -1,0 +1,6 @@
+- [ ] Seperate Authenticator's specs into their own file
+- [ ] rename `*_test.rs` into `*_spec.rs`
+- [ ] Refactor authenticator's tests to use Spectural
+- [ ] MockStorage Get Spec
+- [ ] MockStorage Set Spec
+- [ ] MockStorage Delete Spec

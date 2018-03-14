@@ -3,7 +3,7 @@ use url::Url;
 
 use client::AccessType;
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct BaseAuthenticator {
     client_id: String,
     client_secret: String,
