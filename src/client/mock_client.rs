@@ -1,3 +1,6 @@
+use std::sync::Arc;
+use std::cmp::PartialEq;
+
 use futures::future::{result, FutureResult};
 use url::Url;
 use serde::de::DeserializeOwned;
@@ -22,12 +25,21 @@ where
     pub body: T,
 }
 
-#[derive(Debug, Clone, Serialize, PartialEq, Deserialize)]
+#[derive(Debug, Clone)]
 pub struct MockClient {
     pub auth: BaseAuthenticator,
     pub scopes: Vec<String>,
     pub redirect_uri: &'static str,
     pub access_type: AccessType,
+    pub storage: Arc<MockMemoryStorage>,
+}
+
+impl PartialEq for MockClient {
+    fn eq(&self, other: &MockClient) -> bool {
+        self.auth == other.auth && self.scopes == other.scopes
+            && self.redirect_uri == other.redirect_uri
+            && self.access_type == other.access_type
+    }
 }
 
 impl MockClient {
@@ -45,6 +57,7 @@ impl MockClient {
             ],
             redirect_uri: "https://localhost/auth",
             access_type: AccessType::Grant,
+            storage: Arc::new(MockMemoryStorage::new()),
         })
     }
 }
