@@ -1,10 +1,12 @@
+use std::iter::FromIterator;
+
 use futures::Future;
 use futures_cpupool::CpuPool;
 use rspec::{self, given};
 use spectral::prelude::*;
 
 use client::mock_client::*;
-use client::params::{params_into_hash, ParamValue};
+use client::params::{ParamValue, UrlQueryParams};
 use client::OauthClient;
 
 #[test]
@@ -14,88 +16,69 @@ fn mock_client() {
             ctx.it(
                 "Generates a request with the authenticator `client_id`",
                 |pool| {
-                    let result_params =
-                        pool.clone()
-                            .spawn(MockClient::new().unwrap().get_user_auth_request().and_then(
-                                |req| {
-                                    Ok(params_into_hash(&req.url
-                                        .query_pairs()
-                                        .into_iter()
-                                        .map(|(k, v)| (String::from(k), String::from(v)))
-                                        .collect()))
-                                },
-                            ))
-                            .wait()
-                            .unwrap();
+                    let result_params = pool.clone()
+                        .spawn(
+                            MockClient::new()
+                                .unwrap()
+                                .get_user_auth_request()
+                                .and_then(|req| Ok(UrlQueryParams::from(req.url))),
+                        )
+                        .wait()
+                        .unwrap();
                     // Params from [RFC](https://tools.ietf.org/html/rfc6749#section-4.1.1)
-                    assert_that(&result_params)
+                    assert_that(&*result_params)
                         .contains_key("client_id".to_string())
-                        .is_equal_to(ParamValue::Single("someid@example.com".to_string()));
+                        .is_equal_to(ParamValue::from("someid@example.com"));
                 },
             );
 
             ctx.it(
                 "Generates a request with the example `redirect_uri`",
                 |pool| {
-                    let result_params =
-                        pool.spawn(MockClient::new().unwrap().get_user_auth_request().and_then(
-                            |req| {
-                                Ok(params_into_hash(&req.url
-                                    .query_pairs()
-                                    .into_iter()
-                                    .map(|(k, v)| (String::from(k), String::from(v)))
-                                    .collect()))
-                            },
-                        )).wait()
-                            .unwrap();
+                    let result_params = pool.spawn(
+                        MockClient::new()
+                            .unwrap()
+                            .get_user_auth_request()
+                            .and_then(|req| Ok(UrlQueryParams::from(req.url))),
+                    ).wait()
+                        .unwrap();
                     // Params from [RFC](https://tools.ietf.org/html/rfc6749#section-4.1.1)
-                    assert_that(&result_params)
+                    assert_that(&*result_params)
                         .contains_key("redirect_uri".to_string())
-                        .is_equal_to(ParamValue::Single("https://localhost/auth".to_string()));
+                        .is_equal_to(ParamValue::from("https://localhost/auth"));
                 },
             );
 
-            ctx.it(
-                "Generates a request with the example `scope`",
-                |pool| {
-                    let result_params =
-                        pool.spawn(MockClient::new().unwrap().get_user_auth_request().and_then(
-                            |req| {
-                                Ok(params_into_hash(&req.url
-                                    .query_pairs()
-                                    .into_iter()
-                                    .map(|(k, v)| (String::from(k), String::from(v)))
-                                    .collect()))
-                            },
-                        )).wait()
-                            .unwrap();
-                    // Params from [RFC](https://tools.ietf.org/html/rfc6749#section-4.1.1)
-                    assert_that(&result_params)
-                        .contains_key("scope".to_string())
-                        .is_equal_to(ParamValue::Multi(vec![
-                            "api.example.com/user.profile".to_string(),
-                            "api.example.com/user.me".to_string(),
-                        ]));
-                },
-            );
+            ctx.it("Generates a request with the example `scope`", |pool| {
+                let result_params = pool.spawn(
+                    MockClient::new()
+                        .unwrap()
+                        .get_user_auth_request()
+                        .and_then(|req| Ok(UrlQueryParams::from(req.url))),
+                ).wait()
+                    .unwrap();
+                // Params from [RFC](https://tools.ietf.org/html/rfc6749#section-4.1.1)
+                assert_that(&*result_params)
+                    .contains_key("scope".to_string())
+                    .is_equal_to(ParamValue::from_iter(vec![
+                        "api.example.com/user.profile",
+                        "api.example.com/user.me",
+                    ]));
+            });
             ctx.it(
                 "Generates a request with the example `request_type`",
                 |pool| {
-                    let result_params =
-                        pool.spawn(MockClient::new().unwrap().get_user_auth_request().and_then(
-                            |req| {
-                                Ok(params_into_hash(&req.url
-                                    .query_pairs()
-                                    .into_iter()
-                                    .map(|(k, v)| (String::from(k), String::from(v)))
-                                    .collect()))
-                            },
-                        )).wait()
-                            .unwrap();
+                    let result_params = pool.spawn(
+                        MockClient::new()
+                            .unwrap()
+                            .get_user_auth_request()
+                            .and_then(|req| Ok(UrlQueryParams::from(req.url))),
+                    ).wait()
+                        .unwrap();
                     // Params from [RFC](https://tools.ietf.org/html/rfc6749#section-4.1.1)
-                    assert_that(&result_params)
+                    assert_that(&*result_params)
                         .contains_key("response_type".to_string())
-                        .is_equal_to(ParamValue::Single("code".to_string()));
+                        .is_equal_to(ParamValue::from("code"));
                 },
             );
         });
