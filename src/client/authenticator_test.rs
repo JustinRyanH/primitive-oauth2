@@ -1,9 +1,13 @@
-use client::AccessType;
-use client::authenticator::*;
+use std::iter::FromIterator;
 
+use spectral::prelude::*;
 use rspec::{self, given};
 use dotenv;
 use envy;
+
+use client::params::{ParamValue, UrlQueryParams};
+use client::AccessType;
+use client::authenticator::*;
 
 #[test]
 fn authenticator_is_serializable() {
@@ -24,34 +28,39 @@ fn authenticator_is_serializable() {
 
                     ctx.context("#get_auth_params", |ctx| {
                         ctx.it("pushes the client_id in the params", |env| {
-                            let result = env.get_auth_params("", &vec![], AccessType::Grant);
-                            assert!(result.contains(&(
-                                "client_id",
-                                String::from("example_foobar_whatever@example.com"),
-                            )));
+                            let result = UrlQueryParams::from_iter(env.get_auth_params(
+                                "",
+                                &vec![],
+                                AccessType::Grant,
+                            ));
+                            assert_that(&*result)
+                                .contains_key("client_id".to_string())
+                                .is_equal_to(ParamValue::from(
+                                    "example_foobar_whatever@example.com",
+                                ));
                         });
 
                         ctx.it("pushes the redirect_uri into params", |env| {
-                            let result = env.get_auth_params(
+                            let result = UrlQueryParams::from_iter(env.get_auth_params(
                                 "https://localhost:8000",
                                 &vec![],
                                 AccessType::Grant,
-                            );
-                            assert!(result.contains(&(
-                                "redirect_uri",
-                                String::from("https://localhost:8000"),
-                            )));
-                            assert_eq!(result.len(), 3);
+                            ));
+                            assert_that(&*result)
+                                .contains_key("redirect_uri".to_string())
+                                .is_equal_to(ParamValue::from("https://localhost:8000"));
+                            assert_that(&*result).has_length(3);
                         });
 
                         ctx.it("pushes the scopes into params", |env| {
-                            let result = env.get_auth_params(
+                            let result = UrlQueryParams::from_iter(env.get_auth_params(
                                 "https:://localhost:8080",
                                 &vec!["user.profile".to_string(), "user.openid".to_string()],
                                 AccessType::Grant,
-                            );
-                            assert!(result.contains(&("scope", String::from("user.profile"),)));
-                            assert!(result.contains(&("scope", String::from("user.openid"),)));
+                            ));
+                            assert_that(&*result)
+                                .contains_key("scope".to_string())
+                                .is_equal_to(ParamValue::from_iter(vec!["user.profile", "user.openid"]));
                         });
                     });
 
@@ -62,9 +71,11 @@ fn authenticator_is_serializable() {
                                 let expected_client_id = "example_foobar_whatever@example.com";
                                 let actual_client_id = env.get_client_id();
                                 assert_eq!(
-                                    actual_client_id, expected_client_id,
+                                    actual_client_id,
+                                    expected_client_id,
                                     "Expected BaseAuthenticator's client_id to eq {}, but got {}",
-                                    expected_client_id, actual_client_id
+                                    expected_client_id,
+                                    actual_client_id
                                 );
                             },
                         );
@@ -88,9 +99,11 @@ fn authenticator_is_serializable() {
                                 let expected_auth_uri = "https://example.com/v1/auth";
                                 let actual_auth_uri = env.get_auth_uri();
                                 assert_eq!(
-                                    actual_auth_uri, expected_auth_uri,
+                                    actual_auth_uri,
+                                    expected_auth_uri,
                                     "Expected BaseAuthenticator's auth_uri to eq {}, but got {}",
-                                    expected_auth_uri, actual_auth_uri
+                                    expected_auth_uri,
+                                    actual_auth_uri
                                 );
                             },
                         );
@@ -101,9 +114,11 @@ fn authenticator_is_serializable() {
                                 let expected_token_uri = "https://example.com/v1/token";
                                 let actual_token_uri = env.get_token_uri();
                                 assert_eq!(
-                                    actual_token_uri, expected_token_uri,
+                                    actual_token_uri,
+                                    expected_token_uri,
                                     "Expected BaseAuthenticator's token_uri to eq {}, but got {}",
-                                    expected_token_uri, actual_token_uri
+                                    expected_token_uri,
+                                    actual_token_uri
                                 );
                             },
                         );
