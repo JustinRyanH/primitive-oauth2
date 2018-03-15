@@ -40,6 +40,27 @@ impl ParamValue {
     }
 }
 
+impl<T> From<T> for ParamValue where T: Into<String> {
+    fn from(v: T) -> ParamValue {
+        ParamValue::Single(v.into())
+    }
+}
+
+impl<T> FromIterator<T> for ParamValue
+where
+    T: Into<String>,
+{
+    fn from_iter<I: IntoIterator<Item = T>>(iter: I) -> Self {
+        let as_vec: Vec<String> = iter.into_iter().map(|v| v.into()).collect();
+        let count = as_vec.len();
+        match count {
+            0 => ParamValue::Single("".into()),
+            1 => ParamValue::Single(as_vec.first().unwrap().clone()),
+            _ => ParamValue::Multi(as_vec),
+        }
+    }
+}
+
 impl IntoIterator for ParamValue {
     type Item = String;
     type IntoIter = ::std::vec::IntoIter<String>;
@@ -87,12 +108,13 @@ impl Deref for UrlQueryParams {
     }
 }
 
-impl<'a, T> FromIterator<&'a (T, T)> for UrlQueryParams
+impl<'a, T, S> FromIterator<&'a (T, S)> for UrlQueryParams
 where
     T: Into<String> + Clone,
+    S: Into<String> + Clone,
 {
     #[inline]
-    fn from_iter<I: IntoIterator<Item = &'a (T, T)>>(i: I) -> UrlQueryParams {
+    fn from_iter<I: IntoIterator<Item = &'a (T, S)>>(i: I) -> UrlQueryParams {
         UrlQueryParams(i.into_iter().fold(
             HashMap::<String, ParamValue>::new(),
             |mut acc, &(ref key, ref value)| {
@@ -118,28 +140,32 @@ where
     }
 }
 
-impl FromIterator<(String, String)> for UrlQueryParams {
+impl<T, S> FromIterator<(T, S)> for UrlQueryParams
+where
+    T: Into<String> + Clone,
+    S: Into<String>,
+{
     #[inline]
-    fn from_iter<I: IntoIterator<Item = (String, String)>>(i: I) -> UrlQueryParams {
+    fn from_iter<I: IntoIterator<Item = (T, S)>>(i: I) -> UrlQueryParams {
         UrlQueryParams(i.into_iter().fold(
             HashMap::<String, ParamValue>::new(),
             |mut acc, (key, value)| {
-                let new_value: ParamValue = match acc.get(&key) {
+                let new_value: ParamValue = match acc.get(&key.clone().into()) {
                     Some(v) => match v {
                         &ParamValue::Single(ref sv) => {
-                            ParamValue::Multi(vec![sv.clone(), value.clone()])
+                            ParamValue::Multi(vec![sv.clone(), value.into()])
                         }
                         &ParamValue::Multi(ref mv) => ParamValue::Multi(
                             mv.clone()
                                 .into_iter()
-                                .chain(vec![value.clone()].into_iter())
+                                .chain(vec![value.into()].into_iter())
                                 .collect(),
                         ),
                     },
-                    None => ParamValue::Single(value.clone()),
+                    None => ParamValue::Single(value.into()),
                 };
 
-                acc.insert(key.clone(), new_value);
+                acc.insert(key.into(), new_value);
                 acc
             },
         ))
