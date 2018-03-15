@@ -60,7 +60,10 @@ fn authenticator_is_serializable() {
                             ));
                             assert_that(&*result)
                                 .contains_key("scope".to_string())
-                                .is_equal_to(ParamValue::from_iter(vec!["user.profile", "user.openid"]));
+                                .is_equal_to(ParamValue::from_iter(vec![
+                                    "user.profile",
+                                    "user.openid",
+                                ]));
                         });
                     });
 
@@ -70,13 +73,7 @@ fn authenticator_is_serializable() {
                             |env| {
                                 let expected_client_id = "example_foobar_whatever@example.com";
                                 let actual_client_id = env.get_client_id();
-                                assert_eq!(
-                                    actual_client_id,
-                                    expected_client_id,
-                                    "Expected BaseAuthenticator's client_id to eq {}, but got {}",
-                                    expected_client_id,
-                                    actual_client_id
-                                );
+                                assert_that(&actual_client_id).is_equal_to(expected_client_id);
                             },
                         );
 
@@ -85,11 +82,8 @@ fn authenticator_is_serializable() {
                             |env| {
                                 let expected_client_secret = "super_secret";
                                 let actual_client_secret = env.get_client_secret();
-                                assert_eq!(
-                                    actual_client_secret, expected_client_secret,
-                                    "Expected BaseAuthenticator's client_secret to eq {}, but got {}",
-                                    expected_client_secret, actual_client_secret
-                                );
+                                assert_that(&actual_client_secret)
+                                    .is_equal_to(expected_client_secret);
                             },
                         );
 
@@ -98,13 +92,7 @@ fn authenticator_is_serializable() {
                             |env| {
                                 let expected_auth_uri = "https://example.com/v1/auth";
                                 let actual_auth_uri = env.get_auth_uri();
-                                assert_eq!(
-                                    actual_auth_uri,
-                                    expected_auth_uri,
-                                    "Expected BaseAuthenticator's auth_uri to eq {}, but got {}",
-                                    expected_auth_uri,
-                                    actual_auth_uri
-                                );
+                                assert_that(&actual_auth_uri).is_equal_to(expected_auth_uri);
                             },
                         );
 
@@ -113,13 +101,7 @@ fn authenticator_is_serializable() {
                             |env| {
                                 let expected_token_uri = "https://example.com/v1/token";
                                 let actual_token_uri = env.get_token_uri();
-                                assert_eq!(
-                                    actual_token_uri,
-                                    expected_token_uri,
-                                    "Expected BaseAuthenticator's token_uri to eq {}, but got {}",
-                                    expected_token_uri,
-                                    actual_token_uri
-                                );
+                                assert_that(&actual_token_uri).is_equal_to(expected_token_uri);
                             },
                         );
                     });
