@@ -1,4 +1,8 @@
+use std::iter::FromIterator;
+use std::ops::Deref;
 use std::collections::HashMap;
+
+use url;
 
 #[derive(Debug, Clone, PartialEq)]
 pub enum ParamValue {
@@ -36,28 +40,131 @@ impl ParamValue {
     }
 }
 
-pub fn params_into_hash(params: &Vec<(String, String)>) -> HashMap<String, ParamValue> {
-    params
-        .into_iter()
-        .fold(HashMap::new(), |mut acc, &(ref key, ref value)| {
-            let new_value: ParamValue = match acc.get(key) {
-                Some(v) => match v {
-                    &ParamValue::Single(ref sv) => {
-                        ParamValue::Multi(vec![sv.clone(), value.clone()])
-                    }
-                    &ParamValue::Multi(ref mv) => ParamValue::Multi(
-                        mv.clone()
-                            .into_iter()
-                            .chain(vec![value.clone()].into_iter())
-                            .collect(),
-                    ),
-                },
-                None => ParamValue::Single(value.clone()),
-            };
+impl IntoIterator for ParamValue {
+    type Item = String;
+    type IntoIter = ::std::vec::IntoIter<String>;
 
-            acc.insert(key.clone(), new_value);
-            acc
-        })
+    fn into_iter(self) -> Self::IntoIter {
+        match self {
+            ParamValue::Single(v) => vec![v].into_iter(),
+            ParamValue::Multi(v) => v.into_iter(),
+        }
+    }
+}
+
+pub struct UrlQueryParams(HashMap<String, ParamValue>);
+
+impl UrlQueryParams {
+    pub fn new() -> UrlQueryParams {
+        UrlQueryParams(HashMap::new())
+    }
+}
+
+impl IntoIterator for UrlQueryParams {
+    type Item = (String, String);
+    type IntoIter = ::std::vec::IntoIter<(String, String)>;
+
+    fn into_iter(self) -> Self::IntoIter {
+        self.0
+            .into_iter()
+            .map(|(k, v): (String, ParamValue)| {
+                v.into_iter()
+                    .map(move |inner_v| (k.clone(), inner_v))
+                    .collect()
+            })
+            .fold(Vec::new(), |mut acc, ref mut i| {
+                acc.append(i);
+                return acc;
+            })
+            .into_iter()
+    }
+}
+
+impl Deref for UrlQueryParams {
+    type Target = HashMap<String, ParamValue>;
+    fn deref(&self) -> &HashMap<String, ParamValue> {
+        &self.0
+    }
+}
+
+impl<'a, T> FromIterator<&'a (T, T)> for UrlQueryParams
+where
+    T: Into<String> + Clone,
+{
+    #[inline]
+    fn from_iter<I: IntoIterator<Item = &'a (T, T)>>(i: I) -> UrlQueryParams {
+        UrlQueryParams(i.into_iter().fold(
+            HashMap::<String, ParamValue>::new(),
+            |mut acc, &(ref key, ref value)| {
+                let new_value: ParamValue = match acc.get(&key.clone().into()) {
+                    Some(v) => match v {
+                        &ParamValue::Single(ref sv) => {
+                            ParamValue::Multi(vec![sv.clone(), value.clone().into()])
+                        }
+                        &ParamValue::Multi(ref mv) => ParamValue::Multi(
+                            mv.clone()
+                                .into_iter()
+                                .chain(vec![value.clone().into()].into_iter())
+                                .collect(),
+                        ),
+                    },
+                    None => ParamValue::Single(value.clone().into()),
+                };
+
+                acc.insert(key.clone().into(), new_value);
+                acc
+            },
+        ))
+    }
+}
+
+impl FromIterator<(String, String)> for UrlQueryParams {
+    #[inline]
+    fn from_iter<I: IntoIterator<Item = (String, String)>>(i: I) -> UrlQueryParams {
+        UrlQueryParams(i.into_iter().fold(
+            HashMap::<String, ParamValue>::new(),
+            |mut acc, (key, value)| {
+                let new_value: ParamValue = match acc.get(&key) {
+                    Some(v) => match v {
+                        &ParamValue::Single(ref sv) => {
+                            ParamValue::Multi(vec![sv.clone(), value.clone()])
+                        }
+                        &ParamValue::Multi(ref mv) => ParamValue::Multi(
+                            mv.clone()
+                                .into_iter()
+                                .chain(vec![value.clone()].into_iter())
+                                .collect(),
+                        ),
+                    },
+                    None => ParamValue::Single(value.clone()),
+                };
+
+                acc.insert(key.clone(), new_value);
+                acc
+            },
+        ))
+    }
+}
+
+impl From<url::Url> for UrlQueryParams {
+    #[inline]
+    fn from(v: url::Url) -> UrlQueryParams {
+        v.query_pairs().into()
+    }
+}
+
+impl<'a> From<url::form_urlencoded::Parse<'a>> for UrlQueryParams {
+    #[inline]
+    fn from(v: url::form_urlencoded::Parse<'a>) -> UrlQueryParams {
+        v.into_owned().into()
+    }
+}
+
+impl<'a> From<url::form_urlencoded::ParseIntoOwned<'a>> for UrlQueryParams {
+    #[inline]
+    fn from(v: url::form_urlencoded::ParseIntoOwned<'a>) -> UrlQueryParams {
+        UrlQueryParams::from_iter(v)
+    }
 }
 
 #[cfg(test)]

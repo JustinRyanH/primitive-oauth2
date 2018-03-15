@@ -8,8 +8,8 @@ pub mod storage;
 pub mod params_test;
 #[cfg(test)]
 pub mod storage_test;
-#[cfg(test)]
-pub mod mock_client_test;
+// #[cfg(test)]
+// pub mod mock_client_test;
 #[cfg(test)]
 pub mod authenticator_test;
 

@@ -1,7 +1,9 @@
 use rspec::{self, given};
 use spectral::prelude::*;
 
-use client::params::{params_into_hash, ParamValue};
+use std::iter::FromIterator;
+
+use client::params::{UrlQueryParams, ParamValue};
 use client::params::test_helpers::ParamValueHelper;
 
 #[test]
@@ -38,8 +40,8 @@ fn mock_client() {
                     ];
                 });
                 ctx.it("then places them in a Vector of Strings", |env| {
-                    let multi = params_into_hash(env);
-                    assert_that(&multi)
+                    let multi = UrlQueryParams::from_iter(env.clone());
+                    assert_that(&*multi)
                         .contains_key(&"scope".to_string())
                         .have_multiple_values()
                         .has_length(3);
