@@ -13,7 +13,7 @@ pub mod mock_client_test;
 #[cfg(test)]
 pub mod authenticator_test;
 
-use futures::future::FutureResult;
+use futures::future::{Future, FutureResult};
 use errors::Error;
 
 #[derive(Debug, Clone, Copy, PartialEq, Serialize, Deserialize, Hash)]
@@ -31,6 +31,22 @@ impl AccessType {
     }
 }
 
+#[doc(hidden)]
+/// Convenience trait that convert `Future` object into `Boxed` future
+pub trait AsyncPacker<I, E>: Sized {
+    fn pack(self) -> Box<Future<Item = I, Error = E> + Send>;
+}
+
+impl<F, I, E> AsyncPacker<I, E> for F
+where
+    F: Future<Item = I, Error = E> + 'static + Send,
+    E: Into<Error> + 'static,
+{
+    fn pack(self) -> Box<Future<Item = I, Error = E> + Send> {
+        Box::new(self)
+    }
+}
+
 /// The `OauthClient` trait allows to generate the key components for
 /// each of the [RFC 6749](https://tools.ietf.org/html/rfc6749) client side steps
 pub trait OauthClient<S>: Sized
@@ -42,7 +58,10 @@ where
     // TODO: Add Type Error
     /// Used to implement [4.1.1](https://tools.ietf.org/html/rfc6749#section-4.1.1) and
     /// [4.2.1](https://tools.ietf.org/html/rfc6749#section-4.2.1) Authorization Request
-    fn get_user_auth_request(&self, storage: &mut S) -> FutureResult<Self::Request, Error>;
+    fn get_user_auth_request(
+        &self,
+        storage: &mut S,
+    ) -> Box<Future<Item = Self::Request, Error = Error> + Send>;
 
     /// Handles the [4.1.2](https://tools.ietf.org/html/rfc6749#section-4.1.2) Authorization Redirect Request
     fn handle_auth_request(request: Self::Request, storage: &mut S) -> FutureResult<Self, Error>;

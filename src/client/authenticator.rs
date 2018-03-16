@@ -62,6 +62,7 @@ impl BaseAuthenticator {
         redirect_uri: &str,
         scopes: &Vec<String>,
         access_type: AccessType,
+        state: &str,
     ) -> Vec<(&str, String)> {
         let parsed_scopes: Vec<(&str, String)> = scopes
             .into_iter()
@@ -71,6 +72,7 @@ impl BaseAuthenticator {
             ("client_id", self.client_id.clone()),
             ("redirect_uri", String::from(redirect_uri)),
             ("response_type", access_type.get_response_type().to_string()),
+            ("state", state.into()),
         ].into_iter()
             .chain(parsed_scopes)
             .collect()

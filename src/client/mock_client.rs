@@ -1,15 +1,15 @@
-use futures::future::{result, FutureResult, ok as FutOk};
+use futures::future::{Future, FutureResult};
 use url::Url;
 use serde::de::DeserializeOwned;
 
 use errors::{Error, Result};
-use client::{AccessType, OauthClient};
-use client::storage::MockMemoryStorage;
+use client::{AccessType, AsyncPacker, ClientStorage, OauthClient};
+use client::storage::{MockMemoryStorage, MockStorageKey};
 use client::authenticator::BaseAuthenticator;
 
 pub struct MockReq<T>
 where
-    T: DeserializeOwned,
+    T: DeserializeOwned + Sized,
 {
     pub url: Url,
     pub body: T,
@@ -17,7 +17,7 @@ where
 
 pub struct MockResp<T>
 where
-    T: DeserializeOwned,
+    T: DeserializeOwned + Sized,
 {
     pub body: T,
 }
@@ -55,20 +55,25 @@ impl OauthClient<MockMemoryStorage> for MockClient {
 
     fn get_user_auth_request(
         &self,
-        _storage: &mut MockMemoryStorage,
-    ) -> FutureResult<MockReq<String>, Error> {
-        let url = match Url::parse_with_params(
+        storage: &mut MockMemoryStorage,
+    ) -> Box<Future<Item = MockReq<String>, Error = Error> + Send> {
+        let state = "EXAMPLE_STATE";
+        let mock_req = match Url::parse_with_params(
             self.auth.get_auth_uri(),
             self.auth
-                .get_auth_params(&self.redirect_uri, &self.scopes, self.access_type),
+                .get_auth_params(&self.redirect_uri, &self.scopes, self.access_type, state),
         ) {
-            Ok(u) => u,
-            Err(e) => return result(Err(e.into())),
+            Ok(url) => Ok(MockReq {
+                url,
+                body: String::from(""),
+            }),
+            Err(e) => Err(e.into()),
         };
-        FutOk(MockReq {
-            url: url,
-            body: String::from(""),
-        })
+
+        storage
+            .set(MockStorageKey::state(state), self.clone())
+            .and_then(move |_| mock_req)
+            .pack()
     }
 
     fn handle_auth_request(

@@ -32,6 +32,7 @@ fn authenticator_is_serializable() {
                                 "",
                                 &vec![],
                                 AccessType::Grant,
+                                "STATE",
                             ));
                             assert_that(&*result)
                                 .contains_key("client_id".to_string())
@@ -45,11 +46,11 @@ fn authenticator_is_serializable() {
                                 "https://localhost:8000",
                                 &vec![],
                                 AccessType::Grant,
+                                "STATE",
                             ));
                             assert_that(&*result)
                                 .contains_key("redirect_uri".to_string())
                                 .is_equal_to(ParamValue::from("https://localhost:8000"));
-                            assert_that(&*result).has_length(3);
                         });
 
                         ctx.it("pushes the scopes into params", |env| {
@@ -57,6 +58,7 @@ fn authenticator_is_serializable() {
                                 "https:://localhost:8080",
                                 &vec!["user.profile".to_string(), "user.openid".to_string()],
                                 AccessType::Grant,
+                                "STATE",
                             ));
                             assert_that(&*result)
                                 .contains_key("scope".to_string())

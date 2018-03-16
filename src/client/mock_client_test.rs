@@ -117,7 +117,7 @@ fn mock_client() {
                 // Params from [RFC](https://tools.ietf.org/html/rfc6749#section-4.1.1)
                 assert_that(&*result_params)
                     .contains_key("state".to_string())
-                    .is_equal_to(ParamValue::from("EXAMPLE_STATE_0"));
+                    .is_equal_to(ParamValue::from("EXAMPLE_STATE"));
             });
         });
 
