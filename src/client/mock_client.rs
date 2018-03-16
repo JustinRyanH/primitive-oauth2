@@ -3,7 +3,7 @@ use url::Url;
 use serde::de::DeserializeOwned;
 
 use errors::{Error, Result};
-use client::{AccessType, AsyncPacker, ClientStorage, OauthClient};
+use client::{AccessType, AsyncPacker, ClientStorage, FutResult, OauthClient};
 use client::storage::{MockMemoryStorage, MockStorageKey};
 use client::authenticator::BaseAuthenticator;
 
@@ -53,10 +53,7 @@ impl OauthClient<MockMemoryStorage> for MockClient {
     type Request = MockReq<String>;
     type Response = MockResp<String>;
 
-    fn get_user_auth_request(
-        &self,
-        storage: &mut MockMemoryStorage,
-    ) -> Box<Future<Item = MockReq<String>, Error = Error> + Send> {
+    fn get_user_auth_request(&self, storage: &mut MockMemoryStorage) -> FutResult<MockReq<String>> {
         let state = "EXAMPLE_STATE";
         let mock_req = match Url::parse_with_params(
             self.auth.get_auth_uri(),
@@ -76,17 +73,11 @@ impl OauthClient<MockMemoryStorage> for MockClient {
             .pack()
     }
 
-    fn handle_auth_request(
-        _: MockReq<String>,
-        _: &mut MockMemoryStorage,
-    ) -> FutureResult<Self, Error> {
+    fn handle_auth_request(_: MockReq<String>, _: &mut MockMemoryStorage) -> FutResult<Self> {
         unimplemented!()
     }
 
-    fn get_user_token_request(
-        &self,
-        _: &mut MockMemoryStorage,
-    ) -> FutureResult<MockResp<String>, Error> {
+    fn get_user_token_request(&self, _: &mut MockMemoryStorage) -> FutResult<MockResp<String>> {
         unimplemented!()
     }
 
@@ -94,7 +85,7 @@ impl OauthClient<MockMemoryStorage> for MockClient {
         self,
         _: MockResp<String>,
         _: &mut MockMemoryStorage,
-    ) -> FutureResult<Self, Error> {
+    ) -> FutResult<Self> {
         unimplemented!()
     }
 }

@@ -2,10 +2,10 @@ use std::collections::HashMap;
 use std::sync::{Arc, RwLock};
 use std::ops::Deref;
 
-use futures::future::{result, FutureResult};
+use futures::future::{IntoFuture, err as FutErr, ok as FutOk};
 
 use errors::{Error, Result};
-use client::ClientStorage;
+use client::{AsyncPacker, ClientStorage, FutResult};
 use client::mock_client::MockClient;
 
 #[derive(Debug, Clone)]
@@ -52,25 +52,22 @@ impl ClientStorage<MockClient> for MockMemoryStorage {
     type Error = Error;
     type Lookup = MockStorageKey;
 
-    fn set(
-        &mut self,
-        lookup: MockStorageKey,
-        value: MockClient,
-    ) -> FutureResult<Option<MockClient>, Error> {
+    fn set(&mut self, lookup: MockStorageKey, value: MockClient) -> FutResult<Option<MockClient>> {
         match self.0.write() {
-            Ok(ref mut hash) => result(Ok(hash.insert(lookup, value))),
-            Err(e) => result(Err(e.into())),
-        }
+            Ok(ref mut hash) => FutOk(hash.insert(lookup, value)),
+            Err(e) => FutErr(e.into()),
+        }.into_future()
+            .pack()
     }
 
-    fn get(&self, _lookup: MockStorageKey) -> FutureResult<MockClient, Self::Error> {
+    fn get(&self, _lookup: MockStorageKey) -> FutResult<MockClient> {
         unimplemented!()
     }
-    fn drop(&mut self, _lookup: MockStorageKey) -> FutureResult<MockClient, Self::Error> {
+    fn drop(&mut self, _lookup: MockStorageKey) -> FutResult<MockClient> {
         unimplemented!()
     }
 
-    fn has(&self, _lookup: MockStorageKey) -> FutureResult<bool, Self::Error> {
+    fn has(&self, _lookup: MockStorageKey) -> FutResult<bool> {
         unimplemented!()
     }
 }
