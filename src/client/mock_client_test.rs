@@ -8,19 +8,34 @@ use spectral::prelude::*;
 use client::mock_client::*;
 use client::params::{ParamValue, UrlQueryParams};
 use client::OauthClient;
+use client::storage::MockMemoryStorage;
 
 #[test]
 fn mock_client() {
-    rspec::run(&given("A Mock Client", CpuPool::new(4), |ctx| {
+    #[derive(Debug, Clone)]
+    struct Env {
+        pool: CpuPool,
+        storage: MockMemoryStorage,
+    };
+
+    impl Default for Env {
+        fn default() -> Env {
+            Env {
+                pool: CpuPool::new(4),
+                storage: MockMemoryStorage::new(),
+            }
+        }
+    }
+    rspec::run(&given("A Mock Client", Env::default(), |ctx| {
         ctx.context("Generating Auth Request for User", |ctx| {
             ctx.it(
                 "Generates a request with the authenticator `client_id`",
-                |pool| {
-                    let result_params = pool.clone()
+                |env| {
+                    let result_params = env.pool
                         .spawn(
                             MockClient::new()
                                 .unwrap()
-                                .get_user_auth_request()
+                                .get_user_auth_request(&mut env.storage.clone())
                                 .and_then(|req| Ok(UrlQueryParams::from(req.url))),
                         )
                         .wait()
@@ -34,13 +49,15 @@ fn mock_client() {
 
             ctx.it(
                 "Generates a request with the example `redirect_uri`",
-                |pool| {
-                    let result_params = pool.spawn(
-                        MockClient::new()
-                            .unwrap()
-                            .get_user_auth_request()
-                            .and_then(|req| Ok(UrlQueryParams::from(req.url))),
-                    ).wait()
+                |env| {
+                    let result_params = env.pool
+                        .spawn(
+                            MockClient::new()
+                                .unwrap()
+                                .get_user_auth_request(&mut env.storage.clone())
+                                .and_then(|req| Ok(UrlQueryParams::from(req.url))),
+                        )
+                        .wait()
                         .unwrap();
                     // Params from [RFC](https://tools.ietf.org/html/rfc6749#section-4.1.1)
                     assert_that(&*result_params)
@@ -49,13 +66,15 @@ fn mock_client() {
                 },
             );
 
-            ctx.it("Generates a request with the example `scope`", |pool| {
-                let result_params = pool.spawn(
-                    MockClient::new()
-                        .unwrap()
-                        .get_user_auth_request()
-                        .and_then(|req| Ok(UrlQueryParams::from(req.url))),
-                ).wait()
+            ctx.it("Generates a request with the example `scope`", |env| {
+                let result_params = env.pool
+                    .spawn(
+                        MockClient::new()
+                            .unwrap()
+                            .get_user_auth_request(&mut env.storage.clone())
+                            .and_then(|req| Ok(UrlQueryParams::from(req.url))),
+                    )
+                    .wait()
                     .unwrap();
                 // Params from [RFC](https://tools.ietf.org/html/rfc6749#section-4.1.1)
                 assert_that(&*result_params)
@@ -65,15 +84,18 @@ fn mock_client() {
                         "api.example.com/user.me",
                     ]));
             });
+
             ctx.it(
-                "Generates a request with the example `request_type`",
-                |pool| {
-                    let result_params = pool.spawn(
-                        MockClient::new()
-                            .unwrap()
-                            .get_user_auth_request()
-                            .and_then(|req| Ok(UrlQueryParams::from(req.url))),
-                    ).wait()
+                "Generates a request with the example `response_type`",
+                |env| {
+                    let result_params = env.pool
+                        .spawn(
+                            MockClient::new()
+                                .unwrap()
+                                .get_user_auth_request(&mut env.storage.clone())
+                                .and_then(|req| Ok(UrlQueryParams::from(req.url))),
+                        )
+                        .wait()
                         .unwrap();
                     // Params from [RFC](https://tools.ietf.org/html/rfc6749#section-4.1.1)
                     assert_that(&*result_params)
@@ -81,6 +103,22 @@ fn mock_client() {
                         .is_equal_to(ParamValue::from("code"));
                 },
             );
+
+            ctx.it("Generates a request with the example `state`", |env| {
+                let result_params = env.pool
+                    .spawn(
+                        MockClient::new()
+                            .unwrap()
+                            .get_user_auth_request(&mut env.storage.clone())
+                            .and_then(|req| Ok(UrlQueryParams::from(req.url))),
+                    )
+                    .wait()
+                    .unwrap();
+                // Params from [RFC](https://tools.ietf.org/html/rfc6749#section-4.1.1)
+                assert_that(&*result_params)
+                    .contains_key("state".to_string())
+                    .is_equal_to(ParamValue::from("EXAMPLE_STATE_0"));
+            });
         });
 
         ctx.context("Handles auth request from auth server", |_| {})

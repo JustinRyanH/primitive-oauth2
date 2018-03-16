@@ -1,19 +1,26 @@
 use std::collections::HashMap;
-use std::sync::RwLock;
+use std::sync::{Arc, RwLock};
 use std::ops::Deref;
 
 use futures::future::{result, FutureResult};
 
-use errors::Error;
+use errors::{Error, Result};
 use client::ClientStorage;
 use client::mock_client::MockClient;
 
-#[derive(Debug)]
-pub struct MockMemoryStorage(pub RwLock<HashMap<MockStorageKey, MockClient>>);
+#[derive(Debug, Clone)]
+pub struct MockMemoryStorage(pub Arc<RwLock<HashMap<MockStorageKey, MockClient>>>);
 
 impl MockMemoryStorage {
     pub fn new() -> MockMemoryStorage {
-        MockMemoryStorage(RwLock::new(HashMap::new()))
+        MockMemoryStorage(Arc::new(RwLock::new(HashMap::new())))
+    }
+
+    pub fn len(&self) -> Result<usize> {
+        match self.0.read() {
+            Ok(v) => Ok(v.len()),
+            Err(e) => Err(e.into()),
+        }
     }
 }
 

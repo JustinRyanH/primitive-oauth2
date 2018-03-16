@@ -1,7 +1,4 @@
-use std::sync::Arc;
-use std::cmp::PartialEq;
-
-use futures::future::{result, FutureResult};
+use futures::future::{result, FutureResult, ok as FutOk};
 use url::Url;
 use serde::de::DeserializeOwned;
 
@@ -25,21 +22,12 @@ where
     pub body: T,
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct MockClient {
     pub auth: BaseAuthenticator,
     pub scopes: Vec<String>,
     pub redirect_uri: &'static str,
     pub access_type: AccessType,
-    pub storage: Arc<MockMemoryStorage>,
-}
-
-impl PartialEq for MockClient {
-    fn eq(&self, other: &MockClient) -> bool {
-        self.auth == other.auth && self.scopes == other.scopes
-            && self.redirect_uri == other.redirect_uri
-            && self.access_type == other.access_type
-    }
 }
 
 impl MockClient {
@@ -57,7 +45,6 @@ impl MockClient {
             ],
             redirect_uri: "https://localhost/auth",
             access_type: AccessType::Grant,
-            storage: Arc::new(MockMemoryStorage::new()),
         })
     }
 }
@@ -66,7 +53,10 @@ impl OauthClient<MockMemoryStorage> for MockClient {
     type Request = MockReq<String>;
     type Response = MockResp<String>;
 
-    fn get_user_auth_request(&self) -> FutureResult<MockReq<String>, Error> {
+    fn get_user_auth_request(
+        &self,
+        _storage: &mut MockMemoryStorage,
+    ) -> FutureResult<MockReq<String>, Error> {
         let url = match Url::parse_with_params(
             self.auth.get_auth_uri(),
             self.auth
@@ -75,21 +65,31 @@ impl OauthClient<MockMemoryStorage> for MockClient {
             Ok(u) => u,
             Err(e) => return result(Err(e.into())),
         };
-        result(Ok(MockReq {
+        FutOk(MockReq {
             url: url,
             body: String::from(""),
-        }))
+        })
     }
 
-    fn handle_auth_request(_: MockReq<String>, _: &MockMemoryStorage) -> FutureResult<Self, Error> {
+    fn handle_auth_request(
+        _: MockReq<String>,
+        _: &mut MockMemoryStorage,
+    ) -> FutureResult<Self, Error> {
         unimplemented!()
     }
 
-    fn get_user_token_request(&self) -> FutureResult<MockResp<String>, Error> {
+    fn get_user_token_request(
+        &self,
+        _: &mut MockMemoryStorage,
+    ) -> FutureResult<MockResp<String>, Error> {
         unimplemented!()
     }
 
-    fn handle_token_response(self, _: MockResp<String>) -> FutureResult<Self, Error> {
+    fn handle_token_response(
+        self,
+        _: MockResp<String>,
+        _: &mut MockMemoryStorage,
+    ) -> FutureResult<Self, Error> {
         unimplemented!()
     }
 }

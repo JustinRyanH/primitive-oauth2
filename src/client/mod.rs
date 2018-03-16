@@ -42,16 +42,20 @@ where
     // TODO: Add Type Error
     /// Used to implement [4.1.1](https://tools.ietf.org/html/rfc6749#section-4.1.1) and
     /// [4.2.1](https://tools.ietf.org/html/rfc6749#section-4.2.1) Authorization Request
-    fn get_user_auth_request(&self) -> FutureResult<Self::Request, Error>;
+    fn get_user_auth_request(&self, storage: &mut S) -> FutureResult<Self::Request, Error>;
 
     /// Handles the [4.1.2](https://tools.ietf.org/html/rfc6749#section-4.1.2) Authorization Redirect Request
-    fn handle_auth_request(request: Self::Request, storage: &S) -> FutureResult<Self, Error>;
+    fn handle_auth_request(request: Self::Request, storage: &mut S) -> FutureResult<Self, Error>;
 
     /// Used to implement [4.1.3](https://tools.ietf.org/html/rfc6749#section-4.1.3) Token Request
-    fn get_user_token_request(&self) -> FutureResult<Self::Response, Error>;
+    fn get_user_token_request(&self, storage: &mut S) -> FutureResult<Self::Response, Error>;
 
     /// Handles the [4.1.4](https://tools.ietf.org/html/rfc6749#section-4.1.4) Token Response
-    fn handle_token_response(self, response: Self::Response) -> FutureResult<Self, Error>;
+    fn handle_token_response(
+        self,
+        response: Self::Response,
+        storage: &mut S,
+    ) -> FutureResult<Self, Error>;
 
     // Used to implement [4.6](https://tools.ietf.org/html/rfc6749#section-4.1.4) Token Refresh Reqeust
     // fn get_token_refresh_request(self, response: Self::Response) -> FutureResult<Self, Error>;
