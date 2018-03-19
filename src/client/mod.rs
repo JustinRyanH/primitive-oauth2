@@ -5,13 +5,13 @@ pub mod params;
 pub mod storage;
 
 #[cfg(test)]
-pub mod params_test;
+pub mod params_spec;
 #[cfg(test)]
-pub mod storage_test;
+pub mod storage_spec;
 #[cfg(test)]
-pub mod mock_client_test;
+pub mod mock_client_spec;
 #[cfg(test)]
-pub mod authenticator_test;
+pub mod authenticator_spec;
 
 use futures::future::Future;
 use errors::{Error, Result};
