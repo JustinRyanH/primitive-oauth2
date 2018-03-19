@@ -15,17 +15,19 @@ use client::params::{ParamValue, UrlQueryParams};
 use client::mock_client::*;
 use errors::Error;
 
+#[derive(Clone, Debug)]
 pub enum MockErrKind {
-    invalid_request,
-    unauthorized_client,
-    access_denied,
-    unsupported_response_type,
-    invalid_scope,
-    server_error,
-    temporarily_unavailable,
-    unknown,
+    InvalidRequest,
+    UnauthorizedClient,
+    AccessDenied,
+    UnsupportedResponseType,
+    InvalidScope,
+    ServerError,
+    TemporarilyUnavailable,
+    Unknown,
 }
 
+#[derive(Clone, Debug)]
 pub struct MockError {
     pub kind: MockErrKind,
     pub description: Option<String>,
@@ -47,7 +49,12 @@ impl MockServer {
 
     pub fn redirect(&self, req: MockReq) -> FutResult<MockReq> {
         match self.error {
-            Some(_) => unimplemented!(),
+            Some(ref e) => {
+                let error_kind = e.kind.clone();
+                match error_kind {
+                    _ => unimplemented!(),
+                }
+            }
             None => match req.url.path() {
                 "/auth" => {
                     let state = match UrlQueryParams::from(req.url.query_pairs())
