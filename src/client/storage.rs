@@ -69,6 +69,7 @@ impl ClientStorage<MockClient> for MockMemoryStorage {
             Err(e) => FutErr(e.into()),
         }.pack()
     }
+
     fn drop(&mut self, _lookup: MockStorageKey) -> FutResult<MockClient> {
         unimplemented!()
     }

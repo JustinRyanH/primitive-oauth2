@@ -92,8 +92,8 @@ struct ValidReq {
 }
 
 impl ValidReq {
-    fn from_url<T: Into<params::UrlQueryParams> + Clone>(url: &T) -> Result<ValidReq> {
-        let params: params::UrlQueryParams = url.clone().into();
+    fn from_url<T: Into<params::UrlQueryParams> + Clone>(into_params: &T) -> Result<ValidReq> {
+        let params: params::UrlQueryParams = into_params.clone().into();
         let code: String = params
             .get("code")
             .ok_or("Requires a code to authorize token")?
