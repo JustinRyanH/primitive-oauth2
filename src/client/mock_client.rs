@@ -42,9 +42,6 @@ impl MockServer {
             _ => FutErr(Error::msg("404 Route not found")).pack(),
         }
     }
-    // pub fn recieve(req: MockReq) -> FutResult<MockResp> {
-
-    // }
 }
 
 #[derive(Debug, Clone, PartialEq)]
@@ -75,13 +72,13 @@ impl MockClient {
         })
     }
 
-    pub fn with_code(self, code: String) -> MockClient {
+    pub fn with_code<S: Into<String>>(self, code: S) -> MockClient {
         MockClient {
             auth: self.auth,
             scopes: self.scopes,
             redirect_uri: self.redirect_uri,
             access_type: self.access_type,
-            code: Some(code),
+            code: Some(code.into()),
         }
     }
 }
