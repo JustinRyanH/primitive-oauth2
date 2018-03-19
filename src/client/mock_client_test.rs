@@ -1,4 +1,5 @@
 use std::iter::FromIterator;
+use std::sync::Arc;
 
 use futures::Future;
 use futures_cpupool::CpuPool;
@@ -15,14 +16,14 @@ fn mock_client() {
     #[derive(Debug, Clone)]
     struct Env {
         pool: CpuPool,
-        storage: MockMemoryStorage,
+        storage: Arc<MockMemoryStorage>,
     };
 
     impl Default for Env {
         fn default() -> Env {
             Env {
                 pool: CpuPool::new(4),
-                storage: MockMemoryStorage::new(),
+                storage: Arc::new(MockMemoryStorage::new()),
             }
         }
     }
@@ -35,7 +36,7 @@ fn mock_client() {
                         .spawn(
                             MockClient::new()
                                 .unwrap()
-                                .get_user_auth_request(&mut env.storage.clone())
+                                .get_user_auth_request(Arc::make_mut(&mut env.storage.clone()))
                                 .and_then(|req| Ok(UrlQueryParams::from(req.url))),
                         )
                         .wait()
@@ -54,7 +55,7 @@ fn mock_client() {
                         .spawn(
                             MockClient::new()
                                 .unwrap()
-                                .get_user_auth_request(&mut env.storage.clone())
+                                .get_user_auth_request(Arc::make_mut(&mut env.storage.clone()))
                                 .and_then(|req| Ok(UrlQueryParams::from(req.url))),
                         )
                         .wait()
@@ -71,7 +72,7 @@ fn mock_client() {
                     .spawn(
                         MockClient::new()
                             .unwrap()
-                            .get_user_auth_request(&mut env.storage.clone())
+                            .get_user_auth_request(Arc::make_mut(&mut env.storage.clone()))
                             .and_then(|req| Ok(UrlQueryParams::from(req.url))),
                     )
                     .wait()
@@ -92,7 +93,7 @@ fn mock_client() {
                         .spawn(
                             MockClient::new()
                                 .unwrap()
-                                .get_user_auth_request(&mut env.storage.clone())
+                                .get_user_auth_request(Arc::make_mut(&mut env.storage.clone()))
                                 .and_then(|req| Ok(UrlQueryParams::from(req.url))),
                         )
                         .wait()
@@ -109,7 +110,7 @@ fn mock_client() {
                     .spawn(
                         MockClient::new()
                             .unwrap()
-                            .get_user_auth_request(&mut env.storage.clone())
+                            .get_user_auth_request(Arc::make_mut(&mut env.storage.clone()))
                             .and_then(|req| Ok(UrlQueryParams::from(req.url))),
                     )
                     .wait()
@@ -121,6 +122,28 @@ fn mock_client() {
             });
         });
 
-        ctx.context("Handles auth request from auth server", |_| {})
+        ctx.context("Handles auth request from auth server", |ctx| {
+            ctx.it(
+                "then makes a mock client that can handle token requests",
+                move |env| {
+                    let storage = env.storage.clone();
+                    let auth_request = env.pool
+                        .spawn(
+                            MockClient::new()
+                                .unwrap()
+                                .get_user_auth_request(Arc::make_mut(&mut storage.clone()))
+                                .and_then(|req| MockServer::redirect(req))
+                                .and_then(move |req| {
+                                    MockClient::handle_auth_request(
+                                        req,
+                                        Arc::make_mut(&mut storage.clone()),
+                                    )
+                                }),
+                        )
+                        .wait();
+                    assert_that(&auth_request).is_ok();
+                },
+            )
+        })
     }));
 }

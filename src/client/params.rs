@@ -40,7 +40,10 @@ impl ParamValue {
     }
 }
 
-impl<T> From<T> for ParamValue where T: Into<String> {
+impl<T> From<T> for ParamValue
+where
+    T: Into<String>,
+{
     fn from(v: T) -> ParamValue {
         ParamValue::Single(v.into())
     }
@@ -78,6 +81,10 @@ pub struct UrlQueryParams(HashMap<String, ParamValue>);
 impl UrlQueryParams {
     pub fn new() -> UrlQueryParams {
         UrlQueryParams(HashMap::new())
+    }
+
+    pub fn get<T: Into<String>>(&self, key: T) -> Option<ParamValue> {
+        self.0.get(&key.into()).map(|v| v.clone())
     }
 }
 

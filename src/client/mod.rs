@@ -14,7 +14,7 @@ pub mod mock_client_test;
 pub mod authenticator_test;
 
 use futures::future::Future;
-use errors::Error;
+use errors::{Error, Result};
 
 #[derive(Debug, Clone, Copy, PartialEq, Serialize, Deserialize, Hash)]
 pub enum AccessType {
@@ -84,4 +84,27 @@ pub trait ClientStorage<C: Sized + OauthClient<Self>>: Sized {
     fn get(&self, lookup: Self::Lookup) -> FutResult<C>;
     fn drop(&mut self, lookup: Self::Lookup) -> FutResult<C>;
     fn has(&self, lookup: Self::Lookup) -> FutResult<bool>;
+}
+
+struct ValidReq {
+    code: String,
+    state: Option<String>,
+}
+
+impl ValidReq {
+    fn from_url<T: Into<params::UrlQueryParams> + Clone>(url: &T) -> Result<ValidReq> {
+        let params: params::UrlQueryParams = url.clone().into();
+        let code: String = params
+            .get("code")
+            .ok_or("Requires a code to authorize token")?
+            .single()
+            .ok_or("Expected the code to be a single value")?
+            .clone();
+        let state = match params.get("state") {
+            Some(n) => n.single().cloned(),
+            None => None,
+        };
+
+        Ok(ValidReq { code, state })
+    }
 }

@@ -2,7 +2,8 @@ use std::collections::HashMap;
 use std::sync::{Arc, RwLock};
 use std::ops::Deref;
 
-use futures::future::{IntoFuture, err as FutErr, ok as FutOk};
+use futures::future::{err as FutErr, ok as FutOk};
+use futures::IntoFuture;
 
 use errors::{Error, Result};
 use client::{AsyncPacker, ClientStorage, FutResult};
@@ -56,12 +57,17 @@ impl ClientStorage<MockClient> for MockMemoryStorage {
         match self.0.write() {
             Ok(ref mut hash) => FutOk(hash.insert(lookup, value)),
             Err(e) => FutErr(e.into()),
-        }.into_future()
-            .pack()
+        }.pack()
     }
 
-    fn get(&self, _lookup: MockStorageKey) -> FutResult<MockClient> {
-        unimplemented!()
+    fn get(&self, lookup: MockStorageKey) -> FutResult<MockClient> {
+        match self.0.read() {
+            Ok(hash) => hash.get(&lookup)
+                .map(|c| c.clone())
+                .ok_or(Error::msg("No Client stored from the given lookup"))
+                .into_future(),
+            Err(e) => FutErr(e.into()),
+        }.pack()
     }
     fn drop(&mut self, _lookup: MockStorageKey) -> FutResult<MockClient> {
         unimplemented!()

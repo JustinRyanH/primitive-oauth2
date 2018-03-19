@@ -120,3 +120,9 @@ impl<T> From<sync::PoisonError<T>> for Error {
         Error::from(ErrorKind::Msg(format!("SyncError: {:?}", v)))
     }
 }
+
+impl Error {
+    pub fn msg<T: Into<String>>(m: T) -> Error {
+        ErrorKind::Msg(m.into()).into()
+    }
+}
