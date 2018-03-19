@@ -143,7 +143,7 @@ fn mock_client() {
                         .wait();
                     assert_that(&auth_request)
                         .is_ok()
-                        .is_equal_to(MockClient::new().unwrap().with_code("EXAMPLE_CODE"));
+                        .is_equal_to(MockClient::new().unwrap().with_code("MOCK_CODE"));
                 },
             )
         })
