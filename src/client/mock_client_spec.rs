@@ -2,14 +2,49 @@ use std::iter::FromIterator;
 use std::sync::Arc;
 
 use futures::Future;
+use futures::future::{err as FutErr, ok as FutOk};
 use futures_cpupool::CpuPool;
 use rspec::{self, given};
 use spectral::prelude::*;
 
-use client::mock_client::*;
-use client::params::{ParamValue, UrlQueryParams};
-use client::OauthClient;
+use url::Url;
+
+use client::{AsyncPacker, FutResult, OauthClient};
 use client::storage::MockMemoryStorage;
+use client::params::{ParamValue, UrlQueryParams};
+use client::mock_client::*;
+use errors::Error;
+
+pub struct MockServer;
+
+impl MockServer {
+    pub fn new() -> MockServer {
+        MockServer
+    }
+
+    pub fn redirect(&self, req: MockReq) -> FutResult<MockReq> {
+        match req.url.path() {
+            "/auth" => {
+                let state = match UrlQueryParams::from(req.url.query_pairs())
+                    .get("state")
+                    .unwrap_or(ParamValue::from(""))
+                    .single()
+                {
+                    Some(v) => v.clone(),
+                    None => String::from(""),
+                };
+                FutOk(MockReq {
+                    url: Url::parse_with_params(
+                        "https://localhost/example/auth",
+                        vec![("state", state), ("code", "MOCK_CODE".into())],
+                    ).unwrap(),
+                    body: String::from(""),
+                }).pack()
+            }
+            _ => FutErr(Error::msg("404 Route not found")).pack(),
+        }
+    }
+}
 
 #[test]
 fn mock_client() {
@@ -137,7 +172,7 @@ fn mock_client() {
                             MockClient::new()
                                 .unwrap()
                                 .get_user_auth_request(Arc::make_mut(&mut storage.clone()))
-                                .and_then(|req| MockServer::redirect(req))
+                                .and_then(|req| MockServer::new().redirect(req))
                                 .and_then(move |req| {
                                     MockClient::handle_auth_request(
                                         req,

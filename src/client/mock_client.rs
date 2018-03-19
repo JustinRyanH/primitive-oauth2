@@ -1,12 +1,11 @@
-use futures::future::{err as FutErr, ok as FutOk};
+use futures::future::err as FutErr;
 use futures::future::{Future, IntoFuture};
 use url::Url;
 
-use errors::{Error, Result};
+use errors::Result;
 use client::{AccessType, AsyncPacker, ClientStorage, FutResult, OauthClient, ValidReq};
 use client::storage::{MockMemoryStorage, MockStorageKey};
 use client::authenticator::BaseAuthenticator;
-use client::params::{ParamValue, UrlQueryParams};
 
 pub struct MockReq {
     pub url: Url,
@@ -15,33 +14,6 @@ pub struct MockReq {
 
 pub struct MockResp {
     pub body: String,
-}
-
-pub struct MockServer;
-
-impl MockServer {
-    pub fn redirect(req: MockReq) -> FutResult<MockReq> {
-        match req.url.path() {
-            "/auth" => {
-                let state = match UrlQueryParams::from(req.url.query_pairs())
-                    .get("state")
-                    .unwrap_or(ParamValue::from(""))
-                    .single()
-                {
-                    Some(v) => v.clone(),
-                    None => String::from(""),
-                };
-                FutOk(MockReq {
-                    url: Url::parse_with_params(
-                        "https://localhost/example/auth",
-                        vec![("state", state), ("code", "MOCK_CODE".into())],
-                    ).unwrap(),
-                    body: String::from(""),
-                }).pack()
-            }
-            _ => FutErr(Error::msg("404 Route not found")).pack(),
-        }
-    }
 }
 
 #[derive(Debug, Clone, PartialEq)]
