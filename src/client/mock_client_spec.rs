@@ -15,33 +15,59 @@ use client::params::{ParamValue, UrlQueryParams};
 use client::mock_client::*;
 use errors::Error;
 
-pub struct MockServer;
+pub enum MockErrKind {
+    invalid_request,
+    unauthorized_client,
+    access_denied,
+    unsupported_response_type,
+    invalid_scope,
+    server_error,
+    temporarily_unavailable,
+    unknown,
+}
+
+pub struct MockError {
+    pub kind: MockErrKind,
+    pub description: Option<String>,
+    pub url: Option<String>,
+}
+
+pub struct MockServer {
+    pub error: Option<MockError>,
+}
 
 impl MockServer {
     pub fn new() -> MockServer {
-        MockServer
+        MockServer { error: None }
+    }
+
+    pub fn with_error(error: MockError) -> MockServer {
+        MockServer { error: Some(error) }
     }
 
     pub fn redirect(&self, req: MockReq) -> FutResult<MockReq> {
-        match req.url.path() {
-            "/auth" => {
-                let state = match UrlQueryParams::from(req.url.query_pairs())
-                    .get("state")
-                    .unwrap_or(ParamValue::from(""))
-                    .single()
-                {
-                    Some(v) => v.clone(),
-                    None => String::from(""),
-                };
-                FutOk(MockReq {
-                    url: Url::parse_with_params(
-                        "https://localhost/example/auth",
-                        vec![("state", state), ("code", "MOCK_CODE".into())],
-                    ).unwrap(),
-                    body: String::from(""),
-                }).pack()
-            }
-            _ => FutErr(Error::msg("404 Route not found")).pack(),
+        match self.error {
+            Some(_) => unimplemented!(),
+            None => match req.url.path() {
+                "/auth" => {
+                    let state = match UrlQueryParams::from(req.url.query_pairs())
+                        .get("state")
+                        .unwrap_or(ParamValue::from(""))
+                        .single()
+                    {
+                        Some(v) => v.clone(),
+                        None => String::from(""),
+                    };
+                    FutOk(MockReq {
+                        url: Url::parse_with_params(
+                            "https://localhost/example/auth",
+                            vec![("state", state), ("code", "MOCK_CODE".into())],
+                        ).unwrap(),
+                        body: String::from(""),
+                    }).pack()
+                }
+                _ => FutErr(Error::msg("404 Route not found")).pack(),
+            },
         }
     }
 }
