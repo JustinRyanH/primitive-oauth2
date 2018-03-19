@@ -41,6 +41,7 @@ fn mock_client() {
                         )
                         .wait()
                         .unwrap();
+
                     // Params from [RFC](https://tools.ietf.org/html/rfc6749#section-4.1.1)
                     assert_that(&*result_params)
                         .contains_key("client_id".to_string())
@@ -60,6 +61,7 @@ fn mock_client() {
                         )
                         .wait()
                         .unwrap();
+
                     // Params from [RFC](https://tools.ietf.org/html/rfc6749#section-4.1.1)
                     assert_that(&*result_params)
                         .contains_key("redirect_uri".to_string())
@@ -77,6 +79,7 @@ fn mock_client() {
                     )
                     .wait()
                     .unwrap();
+
                 // Params from [RFC](https://tools.ietf.org/html/rfc6749#section-4.1.1)
                 assert_that(&*result_params)
                     .contains_key("scope".to_string())
@@ -98,6 +101,7 @@ fn mock_client() {
                         )
                         .wait()
                         .unwrap();
+
                     // Params from [RFC](https://tools.ietf.org/html/rfc6749#section-4.1.1)
                     assert_that(&*result_params)
                         .contains_key("response_type".to_string())
@@ -115,6 +119,7 @@ fn mock_client() {
                     )
                     .wait()
                     .unwrap();
+
                 // Params from [RFC](https://tools.ietf.org/html/rfc6749#section-4.1.1)
                 assert_that(&*result_params)
                     .contains_key("state".to_string())
