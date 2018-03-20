@@ -3,13 +3,21 @@ use futures::future::{Future, IntoFuture};
 use url::Url;
 
 use errors::Result;
-use client::{AccessType, AsyncPacker, ClientStorage, FutResult, OauthClient, ValidReq};
+use client::params::UrlQueryParams;
+use client::OauthClient;
+use client::{AccessType, AsyncPacker, ClientStorage, FutResult, ValidReq};
 use client::storage::{MockMemoryStorage, MockStorageKey};
 use client::authenticator::BaseAuthenticator;
 
 pub struct MockReq {
     pub url: Url,
     pub body: String,
+}
+
+impl Into<UrlQueryParams> for MockReq {
+    fn into(self) -> UrlQueryParams {
+        UrlQueryParams::from(self.url)
+    }
 }
 
 pub struct MockResp {

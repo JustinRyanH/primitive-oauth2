@@ -9,6 +9,7 @@ Phase 1
 
 Phase 2
 ----
+- [ ] MockClient without state
 - [ ] MockServer can create each of the potential error responses for Redirect
 - [ ] MockServer can return a token
 - [ ] MockServer can return each of the Error Types for 
@@ -16,6 +17,7 @@ Phase 2
 
 The Big Clean Up
 ----
+- [ ] Drop Rspec in favor of layers of modules
 - [ ] Streamline the Authenticator
 - [ ] Streamline the Authenticator Specs
 - [ ] Streamline Mock Client
