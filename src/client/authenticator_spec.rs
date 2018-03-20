@@ -7,6 +7,8 @@ use client::AccessType;
 use client::authenticator::*;
 
 mod given_an_authenticator {
+    #[allow(unused_imports)]
+
     use std::iter::FromIterator;
     use super::*;
 

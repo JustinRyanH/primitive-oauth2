@@ -1,10 +1,11 @@
-use std::iter::FromIterator;
-use std::sync::Arc;
+#[allow(unused_imports)]
 
+use std::iter::FromIterator;
+
+#[allow(unused_imports)]
 use futures::Future;
 use futures::future::{err as FutErr, ok as FutOk};
 use futures_cpupool::CpuPool;
-use rspec::{self, given};
 
 use url::Url;
 
@@ -79,6 +80,8 @@ impl MockServer {
 }
 
 mod given_mock_client {
+    #[allow(unused_imports)]
+
     use client::OauthClient;
     use spectral::prelude::*;
     use super::*;
