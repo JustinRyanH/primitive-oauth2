@@ -156,8 +156,11 @@ mod given_mock_client {
     }
 
     mod handle_auth_request {
-        use client::OauthClient;
         use super::*;
+
+        #[allow(unused_imports)]
+        use client::mock_client::test_helpers::MockClientHelper;
+        use client::OauthClient;
 
         fn subject(server: MockServer) -> Result<MockClient> {
             let env = env();
@@ -178,10 +181,11 @@ mod given_mock_client {
             }
 
             #[test]
-            fn it_creates_a_client_from_state_and_code() {
+            fn it_returns_client_with_code_from_server() {
                 assert_that(&subject(server()))
                     .is_ok()
-                    .is_equal_to(MockClient::new().unwrap().with_code("MOCK_CODE"));
+                    .has_code()
+                    .is_equal_to("MOCK_CODE".to_string());
             }
         }
     }
