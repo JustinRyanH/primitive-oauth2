@@ -77,6 +77,16 @@ impl MockServer {
             },
         }
     }
+
+    pub fn request(&self, req: MockReq) -> FutResult<MockResp> {
+        match self.error {
+            Some(_) => unimplemented!(),
+            None => match req.url.path() {
+                "/token" => FutOk(MockResp::from("{\"access_token\":\"2YotnFZFEjr1zCsicMWpAA\"}")).pack(),
+                _ => FutErr(Error::msg("404 Route not found")).pack(),
+            }
+        }
+    }
 }
 
 mod given_mock_client {
@@ -187,6 +197,37 @@ mod given_mock_client {
                     .has_code()
                     .is_equal_to("MOCK_CODE".to_string());
             }
+        }
+
+        // TODO: When there was no previous state found
+
+        // TODO: When State isn't used
+    }
+
+    mod request_token {
+        use super::*;
+
+        mod with_code {
+            use super::*;
+
+            fn subject() -> Result<MockResp> {
+                let env = env();
+                let subject_of_interest = MockClient::new().unwrap().with_code("MOCK_CODE").request_token();
+
+                env.clone().pool.clone().spawn(subject_of_interest).wait()
+            }
+
+            #[test]
+            fn it_returns_a_response_with_a_token() {
+                assert_that(&subject()).is_ok();
+            }
+        }
+
+    }
+
+    mod handle_token_response {
+        mod it_stores_successful_client {
+
         }
     }
 }

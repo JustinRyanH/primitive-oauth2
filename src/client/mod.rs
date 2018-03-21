@@ -66,7 +66,7 @@ where
     fn handle_auth_request(request: Self::Request, storage: &mut S) -> FutResult<Self>;
 
     /// Used to implement [4.1.3](https://tools.ietf.org/html/rfc6749#section-4.1.3) Token Request
-    fn get_user_token_request(&self, storage: &mut S) -> FutResult<Self::Response>;
+    fn request_token(&self) -> FutResult<Self::Response>;
 
     /// Handles the [4.1.4](https://tools.ietf.org/html/rfc6749#section-4.1.4) Token Response
     fn handle_token_response(self, response: Self::Response, storage: &mut S) -> FutResult<Self>;

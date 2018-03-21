@@ -1,4 +1,4 @@
-use futures::future::err as FutErr;
+use futures::future::{err as FutErr, ok as FutOk};
 use futures::future::{Future, IntoFuture};
 use url::Url;
 
@@ -9,6 +9,7 @@ use client::{AccessType, AsyncPacker, ClientStorage, FutResult, ValidReq};
 use client::storage::{MockMemoryStorage, MockStorageKey};
 use client::authenticator::BaseAuthenticator;
 
+#[derive(Debug, PartialEq, Clone)]
 pub struct MockReq {
     pub url: Url,
     pub body: String,
@@ -20,8 +21,17 @@ impl Into<UrlQueryParams> for MockReq {
     }
 }
 
+#[derive(Debug, PartialEq, Clone)]
 pub struct MockResp {
     pub body: String,
+}
+
+impl<T> From<T> for MockResp where T: Into<String> {
+    fn from(v: T) -> MockResp {
+        MockResp {
+            body: v.into(),
+        }
+    }
 }
 
 #[derive(Debug, Clone, PartialEq)]
@@ -106,8 +116,8 @@ impl OauthClient<MockMemoryStorage> for MockClient {
         }
     }
 
-    fn get_user_token_request(&self, _: &mut MockMemoryStorage) -> FutResult<MockResp> {
-        unimplemented!()
+    fn request_token(&self) -> FutResult<MockResp> {
+        FutOk(MockResp::from("{\"access_token\":\"2YotnFZFEjr1zCsicMWpAA\"}")).pack()
     }
 
     fn handle_token_response(self, _: MockResp, _: &mut MockMemoryStorage) -> FutResult<Self> {
