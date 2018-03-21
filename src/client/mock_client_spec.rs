@@ -4,90 +4,12 @@ use std::iter::FromIterator;
 
 #[allow(unused_imports)]
 use futures::Future;
-use futures::future::{err as FutErr, ok as FutOk};
 use futures_cpupool::CpuPool;
 
-use url::Url;
-
-use client::{AsyncPacker, FutResult};
 use client::storage::MockMemoryStorage;
 use client::params::{ParamValue, UrlQueryParams};
 use client::mock_client::*;
-use errors::{Error, Result};
-
-#[derive(Clone, Debug)]
-pub enum MockErrKind {
-    InvalidRequest,
-    UnauthorizedClient,
-    AccessDenied,
-    UnsupportedResponseType,
-    InvalidScope,
-    ServerError,
-    TemporarilyUnavailable,
-    Unknown,
-}
-
-#[derive(Clone, Debug)]
-pub struct MockError {
-    pub kind: MockErrKind,
-    pub description: Option<String>,
-    pub url: Option<String>,
-}
-
-pub struct MockServer {
-    pub error: Option<MockError>,
-}
-
-impl MockServer {
-    pub fn new() -> MockServer {
-        MockServer { error: None }
-    }
-
-    pub fn with_error(error: MockError) -> MockServer {
-        MockServer { error: Some(error) }
-    }
-
-    pub fn redirect(&self, req: MockReq) -> FutResult<MockReq> {
-        match self.error {
-            Some(ref e) => {
-                let error_kind = e.kind.clone();
-                match error_kind {
-                    _ => unimplemented!(),
-                }
-            }
-            None => match req.url.path() {
-                "/auth" => {
-                    let state = match UrlQueryParams::from(req.url.query_pairs())
-                        .get("state")
-                        .unwrap_or(ParamValue::from(""))
-                        .single()
-                    {
-                        Some(v) => v.clone(),
-                        None => String::from(""),
-                    };
-                    FutOk(MockReq {
-                        url: Url::parse_with_params(
-                            "https://localhost/example/auth",
-                            vec![("state", state), ("code", "MOCK_CODE".into())],
-                        ).unwrap(),
-                        body: String::from(""),
-                    }).pack()
-                }
-                _ => FutErr(Error::msg("404 Route not found")).pack(),
-            },
-        }
-    }
-
-    pub fn request(&self, req: MockReq) -> FutResult<MockResp> {
-        match self.error {
-            Some(_) => unimplemented!(),
-            None => match req.url.path() {
-                "/token" => FutOk(MockResp::from("{\"access_token\":\"2YotnFZFEjr1zCsicMWpAA\"}")).pack(),
-                _ => FutErr(Error::msg("404 Route not found")).pack(),
-            }
-        }
-    }
-}
+use errors::{Result};
 
 mod given_mock_client {
     #[allow(unused_imports)]

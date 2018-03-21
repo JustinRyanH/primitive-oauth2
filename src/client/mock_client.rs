@@ -2,8 +2,8 @@ use futures::future::{err as FutErr, ok as FutOk};
 use futures::future::{Future, IntoFuture};
 use url::Url;
 
-use errors::Result;
-use client::params::UrlQueryParams;
+use errors::{Error, Result};
+use client::params::{UrlQueryParams, ParamValue};
 use client::OauthClient;
 use client::{AccessType, AsyncPacker, ClientStorage, FutResult, ValidReq};
 use client::storage::{MockMemoryStorage, MockStorageKey};
@@ -41,6 +41,7 @@ pub struct MockClient {
     pub redirect_uri: &'static str,
     pub access_type: AccessType,
     pub code: Option<String>,
+    pub server: MockServer,
 }
 
 impl MockClient {
@@ -59,6 +60,7 @@ impl MockClient {
             redirect_uri: "https://localhost/auth",
             access_type: AccessType::Grant,
             code: None,
+            server: MockServer::new()
         })
     }
 
@@ -69,6 +71,18 @@ impl MockClient {
             redirect_uri: self.redirect_uri,
             access_type: self.access_type,
             code: Some(code.into()),
+            server: self.server,
+        }
+    }
+
+    pub fn with_server(self, server: MockServer) -> MockClient {
+        MockClient {
+            auth: self.auth,
+            scopes: self.scopes,
+            redirect_uri: self.redirect_uri,
+            access_type: self.access_type,
+            code: self.code,
+            server,
         }
     }
 }
@@ -117,11 +131,90 @@ impl OauthClient<MockMemoryStorage> for MockClient {
     }
 
     fn request_token(&self) -> FutResult<MockResp> {
-        FutOk(MockResp::from("{\"access_token\":\"2YotnFZFEjr1zCsicMWpAA\"}")).pack()
+        self.server.request(MockReq {
+            url: Url::parse("https://example.com/token").unwrap(),
+            body: String::from(""),
+        })
     }
 
     fn handle_token_response(self, _: MockResp, _: &mut MockMemoryStorage) -> FutResult<Self> {
         unimplemented!()
+    }
+}
+
+
+#[derive(Clone, Debug, PartialEq)]
+pub enum MockErrKind {
+    InvalidRequest,
+    UnauthorizedClient,
+    AccessDenied,
+    UnsupportedResponseType,
+    InvalidScope,
+    ServerError,
+    TemporarilyUnavailable,
+    Unknown,
+}
+
+#[derive(Clone, Debug, PartialEq)]
+pub struct MockError {
+    pub kind: MockErrKind,
+    pub description: Option<String>,
+    pub url: Option<String>,
+}
+
+#[derive(Debug, Clone, PartialEq)]
+pub struct MockServer {
+    pub error: Option<MockError>,
+}
+
+impl MockServer {
+    pub fn new() -> MockServer {
+        MockServer { error: None }
+    }
+
+    pub fn with_error(error: MockError) -> MockServer {
+        MockServer { error: Some(error) }
+    }
+
+    pub fn redirect(&self, req: MockReq) -> FutResult<MockReq> {
+        match self.error {
+            Some(ref e) => {
+                let error_kind = e.kind.clone();
+                match error_kind {
+                    _ => unimplemented!(),
+                }
+            }
+            None => match req.url.path() {
+                "/auth" => {
+                    let state = match UrlQueryParams::from(req.url.query_pairs())
+                        .get("state")
+                        .unwrap_or(ParamValue::from(""))
+                        .single()
+                        {
+                            Some(v) => v.clone(),
+                            None => String::from(""),
+                        };
+                    FutOk(MockReq {
+                        url: Url::parse_with_params(
+                            "https://localhost/example/auth",
+                            vec![("state", state), ("code", "MOCK_CODE".into())],
+                        ).unwrap(),
+                        body: String::from(""),
+                    }).pack()
+                }
+                _ => FutErr(Error::msg("404 Route not found")).pack(),
+            },
+        }
+    }
+
+    pub fn request(&self, req: MockReq) -> FutResult<MockResp> {
+        match self.error {
+            Some(_) => unimplemented!(),
+            None => match req.url.path() {
+                "/token" => FutOk(MockResp::from("{\"access_token\":\"2YotnFZFEjr1zCsicMWpAA\"}")).pack(),
+                _ => FutErr(Error::msg("404 Route not found")).pack(),
+            }
+        }
     }
 }
 
