@@ -15,7 +15,6 @@ error-chain = "~0.11"
 
 [dev_dependencies]
 futures-cpupool = "~0.1"
-rspec = "1.0.0-beta.4"
 envy = "0.3"
 dotenv =  "~0.11"
 spectral = "0.6.0"

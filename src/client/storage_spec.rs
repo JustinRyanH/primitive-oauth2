@@ -1,57 +1,70 @@
+#[allow(unused_imports)]
 use futures::Future;
 use futures_cpupool::CpuPool;
-use rspec::{self, given};
 use spectral::prelude::*;
 
+#[allow(unused_imports)]
 use client::ClientStorage;
 use client::mock_client::MockClient;
 use client::storage::{MockMemoryStorage, MockStorageKey};
 
-#[test]
-fn mock_client() {
+mod given_a_memory_storage {
+    use super::*;
+
+    type Subject = MockMemoryStorage;
+
     #[derive(Debug, Clone)]
-    struct Subject {
+    struct Env {
         pub pool: CpuPool,
     }
 
-    impl Default for Subject {
-        fn default() -> Subject {
-            Subject {
-                pool: CpuPool::new(4),
-            }
+    fn env() -> Env {
+        Env {
+            pool: CpuPool::new(1),
         }
     }
 
-    rspec::run(&given("MockStoage", Subject::default(), |ctx| {
-        ctx.context("#set", |ctx| {
-            ctx.it("adds the cleint to storage", move |subject| {
-                let mut storage = MockMemoryStorage::new();
-                assert_that(&*storage.read().unwrap()).is_empty();
-                subject
-                    .pool
-                    .spawn(storage.set(MockStorageKey::state("foo"), MockClient::new().unwrap()))
-                    .wait()
-                    .unwrap();
-                assert_that(&*storage.read().unwrap()).contains_key(MockStorageKey::state("foo"));
-            });
-        });
+    mod when_store_is_empty {
+        use super::*;
+        fn subject() -> Subject {
+            let storage = MockMemoryStorage::new();
+            assert_that(&*storage.read().unwrap()).is_empty();
+            storage
+        }
 
-        ctx.context("#get", |ctx| {
-            ctx.it("returns a client", move |subject| {
-                let subject_client = MockClient::new().unwrap();
-                let mut storage = MockMemoryStorage::new();
-                assert_that(&*storage.read().unwrap()).is_empty();
-                let put = subject
-                    .pool
-                    .spawn(storage.set(MockStorageKey::state("foo"), subject_client.clone()))
-                    .wait();
-                assert_that(&put).is_ok();
-                let get = subject
-                    .pool
-                    .spawn(storage.get(MockStorageKey::state("foo")))
-                    .wait();
-                assert_that(&get).is_ok().is_equal_to(&subject_client);
-            });
-        });
-    }));
+        #[test]
+        fn client_storage_set() {
+            let mut subject = subject();
+            let client = MockClient::new().unwrap();
+            let action = subject.set(MockStorageKey::state("foo"), client);
+
+            env().pool.spawn(action).wait().unwrap();
+            assert_that(&*subject.read().unwrap()).contains_key(MockStorageKey::state("foo"));
+        }
+    }
+
+    mod when_storage_has_data {
+        use super::*;
+        use std::ops::Deref;
+
+        fn subject() -> Subject {
+            let storage = MockMemoryStorage::new();
+            storage.deref().write().unwrap().insert(
+                MockStorageKey::state("EXAMPLE_STATE"),
+                MockClient::new().unwrap(),
+            );
+            assert_that(&*storage.read().unwrap())
+                .contains_key(MockStorageKey::state("EXAMPLE_STATE"));
+            storage
+        }
+
+        #[test]
+        fn client_storage_get() {
+            let subject = subject();
+            let action = subject.get(MockStorageKey::state("EXAMPLE_STATE"));
+
+            assert_that(&env().pool.spawn(action).wait()).is_ok();
+        }
+    }
+
 }

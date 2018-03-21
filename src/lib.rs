@@ -24,6 +24,4 @@ extern crate envy;
 #[cfg(test)]
 extern crate futures_cpupool;
 #[cfg(test)]
-extern crate rspec;
-#[cfg(test)]
 extern crate spectral;
