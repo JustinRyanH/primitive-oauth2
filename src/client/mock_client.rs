@@ -139,10 +139,13 @@ impl OauthClient<MockMemoryStorage> for MockClient {
                 Err(e) => return FutErr(e.into()).pack(),
             };
 
-        self.server.request(MockReq {
-            url: token_with_params,
-            body: String::from(""),
-        })
+        self.server
+            .send_request(MockReq {
+                url: token_with_params,
+                body: String::from(""),
+            })
+            .response()
+            .unwrap()
     }
 
     fn handle_token_response(self, _: MockResp, _: &mut MockMemoryStorage) -> FutResult<Self> {

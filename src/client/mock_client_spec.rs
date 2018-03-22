@@ -101,7 +101,7 @@ mod given_mock_client {
             let subject_of_interest = MockClient::new()
                 .unwrap()
                 .get_user_auth_request(&mut storage.clone())
-                .and_then(move |req| server.redirect(req))
+                .and_then(move |req| server.send_request(req).redirect().unwrap())
                 .and_then(move |req| MockClient::handle_auth_request(req, &mut storage.clone()));
 
             env.clone().pool.clone().spawn(subject_of_interest).wait()

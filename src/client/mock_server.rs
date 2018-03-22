@@ -39,46 +39,72 @@ impl MockServer {
         MockServer { error: Some(error) }
     }
 
-    pub fn redirect(&self, req: MockReq) -> FutResult<MockReq> {
-        match self.error {
-            Some(ref e) => {
-                let error_kind = e.kind.clone();
-                match error_kind {
-                    _ => unimplemented!(),
-                }
+    pub fn send_request(&self, req: MockReq) -> ServerResp {
+        match req.url.path() {
+            "/auth" => {
+                let state = match UrlQueryParams::from(req.url.query_pairs())
+                    .get("state")
+                    .unwrap_or(ParamValue::from(""))
+                    .single()
+                {
+                    Some(v) => v.clone(),
+                    None => String::from(""),
+                };
+                FutOk(MockReq {
+                    url: Url::parse_with_params(
+                        "https://localhost/example/auth",
+                        vec![("state", state), ("code", "MOCK_CODE".into())],
+                    ).unwrap(),
+                    body: String::from(""),
+                }).pack()
+                    .into()
             }
-            None => match req.url.path() {
-                "/auth" => {
-                    let state = match UrlQueryParams::from(req.url.query_pairs())
-                        .get("state")
-                        .unwrap_or(ParamValue::from(""))
-                        .single()
-                    {
-                        Some(v) => v.clone(),
-                        None => String::from(""),
-                    };
-                    FutOk(MockReq {
-                        url: Url::parse_with_params(
-                            "https://localhost/example/auth",
-                            vec![("state", state), ("code", "MOCK_CODE".into())],
-                        ).unwrap(),
-                        body: String::from(""),
-                    }).pack()
-                }
-                _ => FutErr(Error::msg("404 Route not found")).pack(),
-            },
+            "/token" => FutOk(MockResp::from(
+                "{\"access_token\":\"2YotnFZFEjr1zCsicMWpAA\"}",
+            )).pack()
+                .into(),
+            _ => ServerResp::response_err(Error::msg("404 Route not found")),
+        }
+    }
+}
+
+pub enum ServerResp {
+    Redirect(FutResult<MockReq>),
+    Response(FutResult<MockResp>),
+}
+
+impl From<FutResult<MockReq>> for ServerResp {
+    fn from(v: FutResult<MockReq>) -> ServerResp {
+        ServerResp::Redirect(v)
+    }
+}
+
+impl From<FutResult<MockResp>> for ServerResp {
+    fn from(v: FutResult<MockResp>) -> ServerResp {
+        ServerResp::Response(v)
+    }
+}
+
+impl ServerResp {
+    pub fn redirect(self) -> Option<FutResult<MockReq>> {
+        match self {
+            ServerResp::Redirect(req) => Some(req),
+            _ => None,
         }
     }
 
-    pub fn request(&self, req: MockReq) -> FutResult<MockResp> {
-        match self.error {
-            Some(_) => unimplemented!(),
-            None => match req.url.path() {
-                "/token" => FutOk(MockResp::from(
-                    "{\"access_token\":\"2YotnFZFEjr1zCsicMWpAA\"}",
-                )).pack(),
-                _ => FutErr(Error::msg("404 Route not found")).pack(),
-            },
+    pub fn redirect_err(err: Error) -> Self {
+        ServerResp::Redirect(FutErr(err.into()).pack())
+    }
+
+    pub fn response_err(err: Error) -> Self {
+        ServerResp::Response(FutErr(err.into()).pack())
+    }
+
+    pub fn response(self) -> Option<FutResult<MockResp>> {
+        match self {
+            ServerResp::Response(resp) => Some(resp),
+            _ => None,
         }
     }
 }
