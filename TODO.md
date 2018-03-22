@@ -9,6 +9,8 @@ Phase 1
 
 Phase 2
 ----
+- [ ] Create an Ext Oauth2 Client that is Future, and 
+  one with regular result
 - [ ] MockClient without state
 - [ ] MockServer can create each of the potential error responses for Redirect
 - [ ] MockServer can return a token

@@ -131,8 +131,13 @@ impl OauthClient<MockMemoryStorage> for MockClient {
     }
 
     fn request_token(&self) -> FutResult<MockResp> {
+        let token_with_params: Url = match Url::parse_with_params(self.auth.get_token_uri(), vec![("foo", "bar")]) {
+            Ok(k) => k,
+            Err(e) => return FutErr(e.into()).pack(),
+        };
+
         self.server.request(MockReq {
-            url: Url::parse("https://example.com/token").unwrap(),
+            url: token_with_params,
             body: String::from(""),
         })
     }
