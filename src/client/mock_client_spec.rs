@@ -9,7 +9,8 @@ use futures_cpupool::CpuPool;
 use client::storage::MockMemoryStorage;
 use client::params::{ParamValue, UrlQueryParams};
 use client::mock_client::*;
-use errors::{Result};
+use client::mock_server::*;
+use errors::Result;
 
 mod given_mock_client {
     #[allow(unused_imports)]
@@ -134,7 +135,10 @@ mod given_mock_client {
 
             fn subject() -> Result<MockResp> {
                 let env = env();
-                let subject_of_interest = MockClient::new().unwrap().with_code("MOCK_CODE").request_token();
+                let subject_of_interest = MockClient::new()
+                    .unwrap()
+                    .with_code("MOCK_CODE")
+                    .request_token();
 
                 env.clone().pool.clone().spawn(subject_of_interest).wait()
             }
@@ -148,8 +152,6 @@ mod given_mock_client {
     }
 
     mod handle_token_response {
-        mod it_stores_successful_client {
-
-        }
+        mod it_stores_successful_client {}
     }
 }
