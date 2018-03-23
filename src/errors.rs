@@ -126,3 +126,12 @@ impl Error {
         ErrorKind::Msg(m.into()).into()
     }
 }
+
+impl PartialEq for Error {
+    fn eq(&self, other: &Error) -> bool {
+        match (self.kind(), other.kind()) {
+            (&ErrorKind::Msg(ref l), &ErrorKind::Msg(ref r)) => l == r,
+            _ => false,
+        }
+    }
+}
