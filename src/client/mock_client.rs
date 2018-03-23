@@ -145,7 +145,8 @@ impl OauthClient<MockMemoryStorage> for MockClient {
                 body: String::from(""),
             })
             .response()
-            .unwrap()
+            .into_future()
+            .pack()
     }
 
     fn handle_token_response(self, _: MockResp, _: &mut MockMemoryStorage) -> FutResult<Self> {
