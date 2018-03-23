@@ -2,14 +2,20 @@ mod describe_mock_sever {
     use url::Url;
     use spectral::prelude::*;
 
+    use errors::Error;
     use client::FutResult;
     use client::mock_client::{MockReq, MockResp};
     use client::mock_server::*;
+
+    fn server() -> MockServer {
+        MockServer::new()
+    }
 
     mod route_token {}
 
     mod route_auth {
         use super::*;
+
         mod happy_case {
             use super::*;
 
@@ -24,9 +30,6 @@ mod describe_mock_sever {
                 ]
             }
 
-            fn server() -> MockServer {
-                MockServer::new()
-            }
             fn request() -> MockReq {
                 MockReq {
                     url: Url::parse_with_params("https://example.net/auth", params()).unwrap(),
@@ -65,7 +68,35 @@ mod describe_mock_sever {
         mod state_param {
             use super::*;
 
-            mod when_required {}
+            mod when_required {
+                use super::*;
+
+                fn params() -> Vec<(&'static str, &'static str)> {
+                    vec![
+                        ("response_type", "code"),
+                        ("client_id", "someid@example.com"),
+                        ("redirect_uri", "https://localhost:8080/oauth/example"),
+                    ]
+                }
+
+                fn request() -> MockReq {
+                    MockReq {
+                        url: Url::parse_with_params("https://example.net/auth", params()).unwrap(),
+                        body: "".to_string(),
+                    }
+                }
+
+                #[test]
+                fn it_returns_a_response_with_error() {
+                    let expected_err =
+                        Error::msg("400: State should be optional, but it currently is not");
+                    // It is a Response
+                    assert_that(&server().send_request(request()).response())
+                        .is_err()
+                        .is_equal_to(expected_err);
+                }
+
+            }
             mod when_not_required {}
         }
     }

@@ -43,14 +43,15 @@ impl MockServer {
     pub fn send_request(&self, req: MockReq) -> ServerResp {
         match req.url.path() {
             "/auth" => {
-                let state = match UrlQueryParams::from(req.url.query_pairs())
-                    .get("state")
-                    .unwrap_or(ParamValue::from(""))
-                    .single()
-                    {
-                        Some(v) => v.clone(),
-                        None => String::from(""),
-                    };
+                let state = match UrlQueryParams::from(req.url.query_pairs()).get("state") {
+                    Some(v) => v.single().unwrap().clone(),
+                    None => {
+                        return ServerResp::response_err(Error::msg(
+                            "400: State should be optional, but it currently is not",
+                        ));
+                    }
+                };
+
                 Ok(MockReq {
                     url: Url::parse_with_params(
                         "https://localhost/example/auth",
@@ -62,7 +63,7 @@ impl MockServer {
             "/token" => Ok(MockResp::from(
                 "{\"access_token\":\"2YotnFZFEjr1zCsicMWpAA\"}",
             )).into(),
-            _ => ServerResp::response_err(Error::msg("404 Route not found")),
+            _ => ServerResp::response_err(Error::msg("404: Route not found")),
         }
     }
 }
