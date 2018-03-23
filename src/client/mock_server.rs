@@ -1,6 +1,6 @@
 use url::Url;
 
-use errors::{Error, Result};
+use errors::{Error, ErrorKind, Result};
 use client::params::UrlQueryParams;
 use client::mock_client::{MockReq, MockResp};
 
@@ -51,25 +51,55 @@ impl MockServer {
         }
     }
 
+    pub fn parse_state(url: &Url) -> Result<String> {
+        match UrlQueryParams::from(url.query_pairs()).get("state") {
+            Some(v) => Ok(v.single()
+                .ok_or(Error::msg(
+                    "Bad Request: Expected Single Parameter, found many",
+                ))?
+                .clone()),
+            None => Err(Error::msg(
+                "Bad Request: State should be optional, but it currently is not",
+            )),
+        }
+    }
+
+    pub fn parse_client_id(url: &Url) -> Result<String> {
+        let client_id = match UrlQueryParams::from(url.query_pairs()).get("client_id") {
+            Some(v) => v.single()
+                .ok_or(Error::msg(
+                    "Bad Request: Expected Single Parameter, found many",
+                ))?
+                .clone(),
+            None => return Err(Error::msg("Bad Request: Missing `client_id`")),
+        };
+
+        if client_id != "someid@example.com" {
+            return Err(Error::msg("Bad Request: Invalid `client_id`"));
+        }
+        Ok(client_id)
+    }
+
     pub fn send_request(&self, req: MockReq) -> ServerResp {
         match req.url.path() {
             "/auth" => {
-                let state = match UrlQueryParams::from(req.url.query_pairs()).get("state") {
-                    Some(v) => v.single().unwrap().clone(),
-                    None => {
-                        return ServerResp::response_err(Error::msg(
-                            "Bad Request: State should be optional, but it currently is not",
-                        ));
-                    }
-                };
-                let client_id = match UrlQueryParams::from(req.url.query_pairs()).get("client_id") {
-                    Some(v) => v.single().unwrap().clone(),
-                    None => return ServerResp::as_response("Bad Request: Missing `client_id`"),
+                let state = match MockServer::parse_state(&req.url) {
+                    Ok(k) => k,
+                    Err(e) => return ServerResp::from(e),
                 };
 
-                if client_id != "someid@example.com" {
-                    return ServerResp::as_response("Bad Request: Invalid `client_id`");
-                }
+                match MockServer::parse_client_id(&req.url) {
+                    Ok(v) => v,
+                    Err(e) => return ServerResp::from(e),
+                };
+                // let client_id = match UrlQueryParams::from(req.url.query_pairs()).get("client_id") {
+                //     Some(v) => v.single().unwrap().clone(),
+                //     None => return ServerResp::as_response("Bad Request: Missing `client_id`"),
+                // };
+
+                // if client_id != "someid@example.com" {
+                //     return ServerResp::as_response("Bad Request: Invalid `client_id`");
+                // }
 
                 let raw_redirect_url = match UrlQueryParams::from(req.url.query_pairs())
                     .get("redirect_uri")
@@ -125,6 +155,16 @@ impl From<Result<MockReq>> for ServerResp {
 impl From<Result<MockResp>> for ServerResp {
     fn from(v: Result<MockResp>) -> ServerResp {
         ServerResp::Response(v)
+    }
+}
+
+impl From<Error> for ServerResp {
+    fn from(e: Error) -> ServerResp {
+        match e.kind() {
+            &ErrorKind::Msg(ref s) => return ServerResp::as_response(s.as_ref()),
+            _ => (),
+        };
+        ServerResp::response_err(e)
     }
 }
 

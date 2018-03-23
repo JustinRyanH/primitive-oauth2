@@ -2,7 +2,6 @@ mod describe_mock_sever {
     use url::Url;
     use spectral::prelude::*;
 
-    use errors::Error;
     use client::mock_client::{MockReq, MockResp};
     use client::mock_server::*;
 
@@ -229,13 +228,12 @@ mod describe_mock_sever {
 
                 #[test]
                 fn it_returns_a_response_with_error() {
-                    let expected_err = Error::msg(
-                        "Bad Request: State should be optional, but it currently is not",
-                    );
+                    let expected_resp: MockResp =
+                        "Bad Request: State should be optional, but it currently is not".into();
                     // It is a Response
                     assert_that(&server().send_request(request()).response())
-                        .is_err()
-                        .is_equal_to(expected_err);
+                        .is_ok()
+                        .is_equal_to(expected_resp);
                 }
 
             }
