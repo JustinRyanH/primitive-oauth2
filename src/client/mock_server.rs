@@ -1,11 +1,8 @@
-use futures::IntoFuture;
-use futures::future::{err as FutErr, ok as FutOk};
 use url::Url;
 
 use errors::{Error, Result};
-use client::params::{ParamValue, UrlQueryParams};
+use client::params::UrlQueryParams;
 use client::mock_client::{MockReq, MockResp};
-use client::{AsyncPacker, FutResult};
 
 #[derive(Clone, Copy, Debug, PartialEq)]
 pub enum MockErrKind {
@@ -47,10 +44,18 @@ impl MockServer {
                     Some(v) => v.single().unwrap().clone(),
                     None => {
                         return ServerResp::response_err(Error::msg(
-                            "400: State should be optional, but it currently is not",
+                            "Bad Request: State should be optional, but it currently is not",
                         ));
                     }
                 };
+                let client_id = match UrlQueryParams::from(req.url.query_pairs()).get("client_id") {
+                    Some(v) => v.single().unwrap().clone(),
+                    None => return ServerResp::as_response("Bad Request: Missing `client_id`"),
+                };
+
+                if client_id != "someid@example.com" {
+                    return ServerResp::as_response("Bad Request: Invalid `client_id`");
+                }
 
                 Ok(MockReq {
                     url: Url::parse_with_params(
@@ -86,6 +91,10 @@ impl From<Result<MockResp>> for ServerResp {
 }
 
 impl ServerResp {
+    pub fn as_response<T: Into<String>>(value: T) -> ServerResp {
+        ServerResp::Response(Ok(String::from(value.into()).into()))
+    }
+
     pub fn redirect(self) -> Result<MockReq> {
         match self {
             ServerResp::Redirect(req) => req,

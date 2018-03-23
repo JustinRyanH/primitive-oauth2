@@ -3,7 +3,6 @@ mod describe_mock_sever {
     use spectral::prelude::*;
 
     use errors::Error;
-    use client::FutResult;
     use client::mock_client::{MockReq, MockResp};
     use client::mock_server::*;
 
@@ -46,19 +45,72 @@ mod describe_mock_sever {
         mod client_id_param {
             use super::*;
 
-            mod when_bad {}
-            mod when_missing {}
+            mod when_bad {
+                use super::*;
+
+                fn params() -> Vec<(&'static str, &'static str)> {
+                    vec![
+                        ("response_type", "code"),
+                        ("client_id", "example.com"),
+                        ("redirect_uri", "https://localhost:8080/oauth/example"),
+                        ("scope", "api.example.com/user.profile"),
+                        ("scope", "api.example.com/add_item"),
+                        ("state", "MOCK_STATE"),
+                    ]
+                }
+
+                fn request() -> MockReq {
+                    MockReq {
+                        url: Url::parse_with_params("https://example.net/auth", params()).unwrap(),
+                        body: "".to_string(),
+                    }
+                }
+
+                #[test]
+                fn it_returns_400_response() {
+                    let expected_resp: MockResp = "Bad Request: Invalid `client_id`".into();
+                    assert_that(&server().send_request(request()).response())
+                        .is_ok()
+                        .is_equal_to(expected_resp);
+                }
+            }
+            mod when_missing {
+                use super::*;
+
+                fn params() -> Vec<(&'static str, &'static str)> {
+                    vec![
+                        ("response_type", "code"),
+                        ("redirect_uri", "https://localhost:8080/oauth/example"),
+                        ("scope", "api.example.com/user.profile"),
+                        ("scope", "api.example.com/add_item"),
+                        ("state", "MOCK_STATE"),
+                    ]
+                }
+
+                fn request() -> MockReq {
+                    MockReq {
+                        url: Url::parse_with_params("https://example.net/auth", params()).unwrap(),
+                        body: "".to_string(),
+                    }
+                }
+
+                #[test]
+                fn it_returns_400_response() {
+                    let expected_resp: MockResp = "Bad Request: Missing `client_id`".into();
+                    assert_that(&server().send_request(request()).response())
+                        .is_ok()
+                        .is_equal_to(expected_resp);
+                }
+            }
         }
 
         mod redirect_uri_param {
-            use super::*;
 
             mod when_not_uri {}
             mod when_missing {}
         }
 
         mod scope_param {
-            use super::*;
 
             mod when_missing {}
             mod when_valid {}
@@ -88,8 +140,9 @@ mod describe_mock_sever {
 
                 #[test]
                 fn it_returns_a_response_with_error() {
-                    let expected_err =
-                        Error::msg("400: State should be optional, but it currently is not");
+                    let expected_err = Error::msg(
+                        "Bad Request: State should be optional, but it currently is not",
+                    );
                     // It is a Response
                     assert_that(&server().send_request(request()).response())
                         .is_err()
