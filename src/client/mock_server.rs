@@ -26,15 +26,29 @@ pub struct MockError {
 #[derive(Debug, Clone, PartialEq)]
 pub struct MockServer {
     pub error: Option<MockError>,
+    pub redirect_uri_required: bool,
 }
 
 impl MockServer {
     pub fn new() -> MockServer {
-        MockServer { error: None }
+        MockServer {
+            error: None,
+            redirect_uri_required: false,
+        }
     }
 
     pub fn with_error(error: MockError) -> MockServer {
-        MockServer { error: Some(error) }
+        MockServer {
+            error: Some(error),
+            redirect_uri_required: false,
+        }
+    }
+
+    pub fn require_redirect(self) -> MockServer {
+        MockServer {
+            error: self.error,
+            redirect_uri_required: true,
+        }
     }
 
     pub fn send_request(&self, req: MockReq) -> ServerResp {
@@ -56,6 +70,30 @@ impl MockServer {
                 if client_id != "someid@example.com" {
                     return ServerResp::as_response("Bad Request: Invalid `client_id`");
                 }
+
+                let raw_redirect_url = match UrlQueryParams::from(req.url.query_pairs())
+                    .get("redirect_uri")
+                {
+                    Some(v) => v.single().map(|v| v.clone()),
+                    None => match self.redirect_uri_required {
+                        true => {
+                            return ServerResp::as_response("Bad Request: Missing `redirect_uri`")
+                        }
+                        false => None,
+                    },
+                };
+
+                let _redirect = match raw_redirect_url {
+                    Some(url) => match Url::parse(url.as_ref()) {
+                        Ok(u) => Some(u),
+                        Err(_) => {
+                            return ServerResp::as_response(
+                                "Bad Request: Invalid Url for `redirect_url`",
+                            )
+                        }
+                    },
+                    None => None,
+                };
 
                 Ok(MockReq {
                     url: Url::parse_with_params(
