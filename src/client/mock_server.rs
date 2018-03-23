@@ -80,6 +80,24 @@ impl MockServer {
         Ok(client_id)
     }
 
+    pub fn parse_redirect_uri(&self, url: &Url) -> Result<Option<Url>> {
+        let raw_redirect_url = match UrlQueryParams::from(url.query_pairs()).get("redirect_uri") {
+            Some(v) => v.single().map(|v| v.clone()),
+            None => match self.redirect_uri_required {
+                true => return Err(Error::msg("Bad Request: Missing `redirect_uri`")),
+                false => None,
+            },
+        };
+
+        match raw_redirect_url {
+            Some(url) => match Url::parse(url.as_ref()) {
+                Ok(u) => Ok(Some(u)),
+                _ => Err(Error::msg("Bad Request: Invalid Url for `redirect_url`")),
+            },
+            None => Ok(None),
+        }
+    }
+
     pub fn send_request(&self, req: MockReq) -> ServerResp {
         match req.url.path() {
             "/auth" => {
@@ -92,37 +110,10 @@ impl MockServer {
                     Ok(v) => v,
                     Err(e) => return ServerResp::from(e),
                 };
-                // let client_id = match UrlQueryParams::from(req.url.query_pairs()).get("client_id") {
-                //     Some(v) => v.single().unwrap().clone(),
-                //     None => return ServerResp::as_response("Bad Request: Missing `client_id`"),
-                // };
 
-                // if client_id != "someid@example.com" {
-                //     return ServerResp::as_response("Bad Request: Invalid `client_id`");
-                // }
-
-                let raw_redirect_url = match UrlQueryParams::from(req.url.query_pairs())
-                    .get("redirect_uri")
-                {
-                    Some(v) => v.single().map(|v| v.clone()),
-                    None => match self.redirect_uri_required {
-                        true => {
-                            return ServerResp::as_response("Bad Request: Missing `redirect_uri`")
-                        }
-                        false => None,
-                    },
-                };
-
-                let _redirect = match raw_redirect_url {
-                    Some(url) => match Url::parse(url.as_ref()) {
-                        Ok(u) => Some(u),
-                        Err(_) => {
-                            return ServerResp::as_response(
-                                "Bad Request: Invalid Url for `redirect_url`",
-                            )
-                        }
-                    },
-                    None => None,
+                match self.parse_redirect_uri(&req.url) {
+                    Ok(v) => v,
+                    Err(e) => return ServerResp::from(e),
                 };
 
                 Ok(MockReq {
