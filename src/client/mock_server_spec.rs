@@ -43,6 +43,7 @@ mod describe_mock_sever {
             }
         }
 
+        /// 4.1.1 client_id: REQUIRED.  The client identifier as described in Section 2.2.
         mod client_id_param {
             use super::*;
 
@@ -105,6 +106,7 @@ mod describe_mock_sever {
             }
         }
 
+        /// 4.1.1 redirect_uri OPTIONAL. [As described in Section 3.1.2.](https://tools.ietf.org/html/rfc6749#section-3.1.2)
         mod redirect_uri_param {
             use super::*;
 
@@ -198,17 +200,22 @@ mod describe_mock_sever {
             }
         }
 
+        /// 4.1.1 scope OPTIONAL.  The scope of the access request [as described by Section 3.3.](https://tools.ietf.org/html/rfc6749#section-3.3)
         mod scope_param {
-
             mod when_missing {}
             mod when_valid {}
             mod when_bad {}
         }
 
+        /// 4.1.1 state RECOMMENDED.
+        /// An opaque value used by the client to maintain state between the request and callback.
+        /// The authorization server includes this value when redirecting the user-agent back
+        /// to the client.  The parameter SHOULD be used for preventing
+        /// cross-site request forgery [as described in Section 10.12.](https://tools.ietf.org/html/rfc6749#section-10.12)
         mod state_param {
             use super::*;
 
-            mod when_required {
+            mod when_required_and_missing {
                 use super::*;
 
                 fn params() -> Vec<(&'static str, &'static str)> {
@@ -237,7 +244,7 @@ mod describe_mock_sever {
                 }
 
             }
-            mod when_not_required {}
+            mod when_not_required_and_missing {}
         }
     }
 
