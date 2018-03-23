@@ -90,10 +90,17 @@ impl MockServer {
         };
 
         match raw_redirect_url {
-            Some(url) => match Url::parse(url.as_ref()) {
-                Ok(u) => Ok(Some(u)),
-                _ => Err(Error::msg("Bad Request: Invalid Url for `redirect_url`")),
-            },
+            Some(url) => {
+                if url.as_str() != "https://localhost:8080/oauth/example" {
+                    return Err(Error::msg(
+                        "Bad Request: Redirect Uri does not match valid uri",
+                    ));
+                }
+                match Url::parse(url.as_ref()) {
+                    Ok(u) => Ok(Some(u)),
+                    _ => unreachable!(),
+                }
+            }
             None => Ok(None),
         }
     }

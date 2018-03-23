@@ -108,66 +108,66 @@ mod describe_mock_sever {
         mod redirect_uri_param {
             use super::*;
 
-            mod when_not_uri {
-                use super::*;
-
-                fn params() -> Vec<(&'static str, &'static str)> {
-                    vec![
-                        ("response_type", "code"),
-                        ("client_id", "someid@example.com"),
-                        ("redirect_uri", "/oauth/example"),
-                        ("scope", "api.example.com/user.profile"),
-                        ("scope", "api.example.com/add_item"),
-                        ("state", "MOCK_STATE"),
-                    ]
-                }
-
-                fn request() -> MockReq {
-                    MockReq {
-                        url: Url::parse_with_params("https://example.net/auth", params()).unwrap(),
-                        body: "".to_string(),
-                    }
-                }
-
-                #[test]
-                fn it_returns_a_400_response() {
-                    let expected_resp: MockResp =
-                        "Bad Request: Invalid Url for `redirect_url`".into();
-                    assert_that(&server().send_request(request()).response())
-                        .is_ok()
-                        .is_equal_to(expected_resp);
-                }
-            }
-
             mod when_reqired_and_missing {
                 use super::*;
 
-                fn params() -> Vec<(&'static str, &'static str)> {
-                    vec![
-                        ("response_type", "code"),
-                        ("client_id", "someid@example.com"),
-                        ("scope", "api.example.com/user.profile"),
-                        ("scope", "api.example.com/add_item"),
-                        ("state", "MOCK_STATE"),
-                    ]
-                }
-
-                fn request() -> MockReq {
+                fn request(params: Vec<(&'static str, &'static str)>) -> MockReq {
                     MockReq {
-                        url: Url::parse_with_params("https://example.net/auth", params()).unwrap(),
+                        url: Url::parse_with_params("https://example.net/auth", params).unwrap(),
                         body: "".to_string(),
                     }
                 }
 
-                #[test]
-                fn it_returns_a_response_with_error() {
-                    let expected_resp: MockResp = "Bad Request: Missing `redirect_uri`".into();
-                    assert_that(&server()
-                        .require_redirect()
-                        .send_request(request())
-                        .response())
-                        .is_ok()
-                        .is_equal_to(expected_resp);
+                mod and_missing {
+                    use super::*;
+
+                    fn params() -> Vec<(&'static str, &'static str)> {
+                        vec![
+                            ("response_type", "code"),
+                            ("client_id", "someid@example.com"),
+                            ("scope", "api.example.com/user.profile"),
+                            ("scope", "api.example.com/add_item"),
+                            ("state", "MOCK_STATE"),
+                        ]
+                    }
+
+                    #[test]
+                    fn it_returns_a_response_with_error() {
+                        let expected_resp: MockResp = "Bad Request: Missing `redirect_uri`".into();
+                        assert_that(&server()
+                            .require_redirect()
+                            .send_request(request(params()))
+                            .response())
+                            .is_ok()
+                            .is_equal_to(expected_resp);
+                    }
+                }
+
+                mod not_in_validation_list {
+                    use super::*;
+
+                    fn params() -> Vec<(&'static str, &'static str)> {
+                        vec![
+                            ("response_type", "code"),
+                            ("client_id", "someid@example.com"),
+                            ("redirect_uri", "https://localhost:8080/oauth/bad"),
+                            ("scope", "api.example.com/user.profile"),
+                            ("scope", "api.example.com/add_item"),
+                            ("state", "MOCK_STATE"),
+                        ]
+                    }
+
+                    #[test]
+                    fn it_returns_a_response_with_error() {
+                        let expected_resp: MockResp =
+                            "Bad Request: Redirect Uri does not match valid uri".into();
+                        assert_that(&server()
+                            .require_redirect()
+                            .send_request(request(params()))
+                            .response())
+                            .is_ok()
+                            .is_equal_to(expected_resp);
+                    }
                 }
             }
 
