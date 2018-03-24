@@ -163,12 +163,16 @@ impl MockServer {
         }).into()
     }
 
+    pub fn token(&self, req: MockReq) -> ServerResp {
+        Ok(MockResp::from(
+            "{\"access_token\":\"2YotnFZFEjr1zCsicMWpAA\"}",
+        )).into()
+    }
+
     pub fn send_request(&self, req: MockReq) -> ServerResp {
         match req.url.path() {
             "/auth" => self.auth(req),
-            "/token" => Ok(MockResp::from(
-                "{\"access_token\":\"2YotnFZFEjr1zCsicMWpAA\"}",
-            )).into(),
+            "/token" => self.token(req),
             _ => ServerResp::response_err(Error::msg("404: Route not found")),
         }
     }
