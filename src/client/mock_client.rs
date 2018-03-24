@@ -59,7 +59,7 @@ impl MockClient {
                 "api.example.com/user.profile".to_string(),
                 "api.example.com/user.me".to_string(),
             ],
-            redirect_uri: "https://localhost/auth",
+            redirect_uri: "https://localhost:8080/oauth/example",
             access_type: AccessType::Grant,
             code: None,
             server: MockServer::new(),

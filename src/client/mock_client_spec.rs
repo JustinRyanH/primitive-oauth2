@@ -60,7 +60,7 @@ mod given_mock_client {
         fn request_contains_redirect_uri() {
             assert_that(&*subject())
                 .contains_key("redirect_uri".to_string())
-                .is_equal_to(ParamValue::from("https://localhost/auth"));
+                .is_equal_to(ParamValue::from("https://localhost:8080/oauth/example"));
         }
 
         #[test]
@@ -115,7 +115,7 @@ mod given_mock_client {
 
             #[test]
             fn it_returns_client_with_code_from_server() {
-                assert_that(&subject(server()))
+                assert_that(&subject(server().with_code("MOCK_CODE")))
                     .is_ok()
                     .has_code()
                     .is_equal_to("MOCK_CODE".to_string());

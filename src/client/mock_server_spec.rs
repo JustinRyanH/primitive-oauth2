@@ -243,7 +243,33 @@ mod describe_mock_sever {
                 }
 
             }
-            mod when_not_required_and_missing {}
+            mod when_not_required_and_missing {
+                use super::*;
+
+                fn params() -> Vec<(&'static str, &'static str)> {
+                    vec![
+                        ("response_type", "code"),
+                        ("client_id", "someid@example.com"),
+                        ("redirect_uri", "https://localhost:8080/oauth/example"),
+                    ]
+                }
+
+                fn request() -> MockReq {
+                    MockReq {
+                        url: Url::parse_with_params("https://example.net/auth", params()).unwrap(),
+                        body: "".to_string(),
+                    }
+                }
+
+                #[test]
+                fn it_returns_a_response_with_error() {
+                    let expected_resp: MockResp = "Bad Request: Missing `state`".into();
+                    // It is a Response
+                    assert_that(&server().send_request(request()).response())
+                        .is_ok()
+                        .is_equal_to(expected_resp);
+                }
+            }
         }
     }
 

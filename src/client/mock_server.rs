@@ -27,6 +27,8 @@ pub struct MockError {
 pub struct MockServer {
     pub error: Option<MockError>,
     pub redirect_uri_required: bool,
+    pub code: &'static str,
+    pub last_state: Option<&'static str>,
 }
 
 impl MockServer {
@@ -34,20 +36,53 @@ impl MockServer {
         MockServer {
             error: None,
             redirect_uri_required: false,
+            code: "",
+            last_state: None,
         }
     }
 
-    pub fn with_error(error: MockError) -> MockServer {
+    pub fn with_error(self, error: MockError) -> MockServer {
         MockServer {
             error: Some(error),
-            redirect_uri_required: false,
+            code: self.code,
+            redirect_uri_required: self.redirect_uri_required,
+            last_state: self.last_state,
         }
     }
 
     pub fn require_redirect(self) -> MockServer {
         MockServer {
             error: self.error,
+            code: self.code,
             redirect_uri_required: true,
+            last_state: self.last_state,
+        }
+    }
+
+    pub fn with_code(self, code: &'static str) -> MockServer {
+        MockServer {
+            error: self.error,
+            code: code,
+            redirect_uri_required: self.redirect_uri_required,
+            last_state: self.last_state,
+        }
+    }
+
+    pub fn with_state(self, state: &'static str) -> MockServer {
+        MockServer {
+            error: self.error,
+            code: self.code,
+            redirect_uri_required: self.redirect_uri_required,
+            last_state: Some(state),
+        }
+    }
+
+    pub fn with_no_state(self) -> MockServer {
+        MockServer {
+            error: self.error,
+            code: self.code,
+            redirect_uri_required: self.redirect_uri_required,
+            last_state: None,
         }
     }
 
