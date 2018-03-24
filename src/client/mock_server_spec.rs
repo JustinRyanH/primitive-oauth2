@@ -235,8 +235,7 @@ mod describe_mock_sever {
 
                 #[test]
                 fn it_returns_a_response_with_error() {
-                    let expected_resp: MockResp =
-                        "Bad Request: State should be optional, but it currently is not".into();
+                    let expected_resp: MockResp = "Bad Request: Missing `state`".into();
                     // It is a Response
                     assert_that(&server().send_request(request()).response())
                         .is_ok()

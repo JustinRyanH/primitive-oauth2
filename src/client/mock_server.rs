@@ -58,9 +58,7 @@ impl MockServer {
                     "Bad Request: Expected Single Parameter, found many",
                 ))?
                 .clone()),
-            None => Err(Error::msg(
-                "Bad Request: State should be optional, but it currently is not",
-            )),
+            None => Err(Error::msg("Bad Request: Missing `state`")),
         }
     }
 
