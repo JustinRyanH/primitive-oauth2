@@ -138,32 +138,34 @@ impl MockServer {
         }
     }
 
+    pub fn auth(&self, req: MockReq) -> ServerResp {
+        let state = match MockServer::parse_state(&req.url) {
+            Ok(k) => k,
+            Err(e) => return ServerResp::from(e),
+        };
+
+        match MockServer::parse_client_id(&req.url) {
+            Ok(v) => v,
+            Err(e) => return ServerResp::from(e),
+        };
+
+        match self.parse_redirect_uri(&req.url) {
+            Ok(v) => v,
+            Err(e) => return ServerResp::from(e),
+        };
+
+        Ok(MockReq {
+            url: Url::parse_with_params(
+                "https://localhost/example/auth",
+                vec![("state", state), ("code", "MOCK_CODE".into())],
+            ).unwrap(),
+            body: String::from(""),
+        }).into()
+    }
+
     pub fn send_request(&self, req: MockReq) -> ServerResp {
         match req.url.path() {
-            "/auth" => {
-                let state = match MockServer::parse_state(&req.url) {
-                    Ok(k) => k,
-                    Err(e) => return ServerResp::from(e),
-                };
-
-                match MockServer::parse_client_id(&req.url) {
-                    Ok(v) => v,
-                    Err(e) => return ServerResp::from(e),
-                };
-
-                match self.parse_redirect_uri(&req.url) {
-                    Ok(v) => v,
-                    Err(e) => return ServerResp::from(e),
-                };
-
-                Ok(MockReq {
-                    url: Url::parse_with_params(
-                        "https://localhost/example/auth",
-                        vec![("state", state), ("code", "MOCK_CODE".into())],
-                    ).unwrap(),
-                    body: String::from(""),
-                }).into()
-            }
+            "/auth" => self.auth(req),
             "/token" => Ok(MockResp::from(
                 "{\"access_token\":\"2YotnFZFEjr1zCsicMWpAA\"}",
             )).into(),
