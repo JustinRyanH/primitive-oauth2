@@ -16,6 +16,21 @@ pub struct MockReq {
     pub body: String,
 }
 
+impl MockReq {
+    pub fn from_str<T: AsRef<str>>(s: T) -> Result<MockReq> {
+        Ok(Url::parse(s.as_ref())?.into())
+    }
+}
+
+impl From<Url> for MockReq {
+    fn from(url: Url) -> MockReq {
+        MockReq {
+            url,
+            body: "".into(),
+        }
+    }
+}
+
 impl Into<UrlQueryParams> for MockReq {
     fn into(self) -> UrlQueryParams {
         UrlQueryParams::from(self.url)

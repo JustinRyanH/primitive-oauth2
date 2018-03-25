@@ -9,7 +9,12 @@ mod describe_mock_sever {
         MockServer::new()
     }
 
-    mod route_token {}
+    mod route_token {
+        use super::*;
+
+        ///
+        mod happy_case {}
+    }
 
     /// Used Simulate the [4.1.1.  Authorization Request](https://tools.ietf.org/html/rfc6749#section-4.1.1)
     /// request, and the expected responses if they failed.
@@ -134,14 +139,16 @@ mod describe_mock_sever {
                     }
 
                     #[test]
+                    /// Returns [4.1.2.1. Error Response](https://tools.ietf.org/html/rfc6749#section-4.1.2.1)
+                    /// with an invalid request
                     fn it_returns_a_response_with_error() {
-                        let expected_resp: MockResp = "Bad Request: Missing `redirect_uri`".into();
+                        let expected_req: MockReq = Url::parse("https://example.com?error=invalid_request&error_description=Bad Request: Missing `redirect_uri`").unwrap().into();
                         assert_that(&server()
                             .require_redirect()
                             .send_request(request(params()))
-                            .response())
+                            .redirect())
                             .is_ok()
-                            .is_equal_to(expected_resp);
+                            .is_equal_to(expected_req);
                     }
                 }
 

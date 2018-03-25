@@ -117,7 +117,12 @@ impl MockServer {
         let raw_redirect_url = match UrlQueryParams::from(url.query_pairs()).get("redirect_uri") {
             Some(v) => v.single().map(|v| v.clone()),
             None => match self.redirect_uri_required {
-                true => return Err(Error::msg("Bad Request: Missing `redirect_uri`")),
+                true => {
+                    return Err(Error::invalid_request(
+                        Some("Bad Request: Missing `redirect_uri`"),
+                        None,
+                    ))
+                }
                 false => None,
             },
         };
@@ -163,7 +168,7 @@ impl MockServer {
         }).into()
     }
 
-    pub fn token(&self, req: MockReq) -> ServerResp {
+    pub fn token(&self, _: MockReq) -> ServerResp {
         Ok(MockResp::from(
             "{\"access_token\":\"2YotnFZFEjr1zCsicMWpAA\"}",
         )).into()
@@ -199,6 +204,12 @@ impl From<Error> for ServerResp {
     fn from(e: Error) -> ServerResp {
         match e.kind() {
             &ErrorKind::Msg(ref s) => return ServerResp::as_response(s.as_ref()),
+            &ErrorKind::InvalidRequest(ref desc, ref uri) => {
+                return ServerResp::from(MockReq::from_str(format!(
+                    "https://example.com?error=invalid_request&{}",
+                    ServerResp::params_from_optionals(desc, uri)
+                )))
+            }
             _ => (),
         };
         ServerResp::response_err(e)
@@ -206,6 +217,16 @@ impl From<Error> for ServerResp {
 }
 
 impl ServerResp {
+    fn params_from_optionals(description: &Option<String>, uri: &Option<String>) -> String {
+        let mut out = String::from("");
+        if let &Some(ref desc) = description {
+            out.push_str(format!("error_description={}", desc).as_ref());
+        }
+        if let &Some(ref u) = uri {
+            out.push_str(u.as_ref());
+        }
+        out
+    }
     pub fn as_response<T: Into<String>>(value: T) -> ServerResp {
         ServerResp::Response(Ok(String::from(value.into()).into()))
     }
