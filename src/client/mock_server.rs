@@ -182,22 +182,22 @@ impl MockServer {
     pub fn auth(&self, req: MockReq) -> ServerResp {
         let state = match MockServer::parse_state(&req.url) {
             Ok(k) => k,
-            Err(e) => return ServerResp::from(e),
+            Err(e) => return ServerResp::redirect_err(e),
         };
 
         match MockServer::parse_client_id(&req.url) {
             Ok(_) => (),
-            Err(e) => return ServerResp::from(e),
+            Err(e) => return ServerResp::redirect_err(e),
         };
 
         match self.parse_redirect_uri(&req.url) {
             Ok(_) => (),
-            Err(e) => return ServerResp::from(e),
+            Err(e) => return ServerResp::redirect_err(e),
         };
 
         match self.parse_scope(&req.url) {
             Ok(_) => (),
-            Err(e) => return ServerResp::from(e),
+            Err(e) => return ServerResp::redirect_err(e),
         };
 
         Ok(MockReq {
@@ -241,28 +241,6 @@ impl From<Result<MockResp>> for ServerResp {
     }
 }
 
-impl From<Error> for ServerResp {
-    fn from(e: Error) -> ServerResp {
-        match e.kind() {
-            &ErrorKind::Msg(ref s) => return ServerResp::as_response(s.as_ref()),
-            &ErrorKind::InvalidRequest(ref desc, ref uri) => {
-                return ServerResp::from(MockReq::from_str(format!(
-                    "https://example.com?error=invalid_request&{}",
-                    ServerResp::params_from_optionals(desc, uri)
-                )))
-            }
-            &ErrorKind::UnauthorizedClient(ref desc, ref uri) => {
-                return ServerResp::from(MockReq::from_str(format!(
-                    "https://example.com?error=unauthorized_client&{}",
-                    ServerResp::params_from_optionals(desc, uri)
-                )))
-            }
-            _ => (),
-        };
-        ServerResp::response_err(e)
-    }
-}
-
 impl ServerResp {
     fn params_from_optionals(description: &Option<String>, uri: &Option<String>) -> String {
         let mut out = String::from("");
@@ -286,7 +264,47 @@ impl ServerResp {
     }
 
     pub fn redirect_err(err: Error) -> Self {
-        ServerResp::Redirect(Err(err.into()))
+        match err.kind() {
+            &ErrorKind::Msg(ref s) => return ServerResp::as_response(s.as_ref()),
+            &ErrorKind::InvalidRequest(ref desc, ref uri) => {
+                return ServerResp::from(MockReq::from_str(format!(
+                    "https://example.com?error=invalid_request&{}",
+                    ServerResp::params_from_optionals(desc, uri)
+                )))
+            }
+            &ErrorKind::UnauthorizedClient(ref desc, ref uri) => {
+                return ServerResp::from(MockReq::from_str(format!(
+                    "https://example.com?error=unauthorized_client&{}",
+                    ServerResp::params_from_optionals(desc, uri)
+                )))
+            }
+            &ErrorKind::InvalidGrant(ref desc, ref uri) => {
+                return ServerResp::from(MockReq::from_str(format!(
+                    "https://example.com?error=invalid_client&{}",
+                    ServerResp::params_from_optionals(desc, uri)
+                )))
+            }
+            &ErrorKind::InvalidClient(ref desc, ref uri) => {
+                return ServerResp::from(MockReq::from_str(format!(
+                    "https://example.com?error=invalid_client&{}",
+                    ServerResp::params_from_optionals(desc, uri)
+                )))
+            }
+            &ErrorKind::UnsupportedGrantType(ref desc, ref uri) => {
+                return ServerResp::from(MockReq::from_str(format!(
+                    "https://example.com?error=unsupported_grant_type&{}",
+                    ServerResp::params_from_optionals(desc, uri)
+                )))
+            }
+            &ErrorKind::InvalidScope(ref desc, ref uri) => {
+                return ServerResp::from(MockReq::from_str(format!(
+                    "https://example.com?error=invalid_scope&{}",
+                    ServerResp::params_from_optionals(desc, uri)
+                )))
+            }
+            _ => (),
+        };
+        ServerResp::response_err(err)
     }
 
     pub fn response_err(err: Error) -> Self {
