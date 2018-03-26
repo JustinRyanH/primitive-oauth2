@@ -2,7 +2,7 @@ use futures::future::err as FutErr;
 use futures::future::{Future, IntoFuture};
 use url::Url;
 
-use errors::Result;
+use errors::{ErrorKind, Result};
 use client::params::UrlQueryParams;
 use client::OauthClient;
 use client::mock_server::*;
@@ -40,6 +40,53 @@ impl Into<UrlQueryParams> for MockReq {
 #[derive(Debug, PartialEq, Clone)]
 pub struct MockResp {
     pub body: String,
+}
+
+impl MockResp {
+    fn json_from_optionals(
+        error_kind: &'static str,
+        description: &Option<String>,
+        uri: &Option<String>,
+    ) -> MockResp {
+        let mut out = String::from(error_kind);
+        if let &Some(ref desc) = description {
+            out.push_str(format!("\"error_description\": \"{}\"", desc).as_ref());
+        }
+        if let &Some(ref u) = uri {
+            out.push_str(format!("\"error_uri\": \"{}\"", u).as_ref());
+        }
+        MockResp {
+            body: format!("{{ {} }}", out),
+        }
+    }
+}
+
+impl<'a> From<&'a ErrorKind> for MockResp {
+    fn from(kind: &'a ErrorKind) -> MockResp {
+        match kind {
+            &ErrorKind::InvalidRequest(ref desc, ref uri) => {
+                MockResp::json_from_optionals("invalid_request", desc, uri)
+            }
+            &ErrorKind::UnauthorizedClient(ref desc, ref uri) => {
+                MockResp::json_from_optionals("unauthorized_client", desc, uri)
+            }
+            &ErrorKind::InvalidGrant(ref desc, ref uri) => {
+                MockResp::json_from_optionals("invalid_grant", desc, uri)
+            }
+            &ErrorKind::InvalidClient(ref desc, ref uri) => {
+                MockResp::json_from_optionals("invalid_client", desc, uri)
+            }
+            &ErrorKind::UnsupportedGrantType(ref desc, ref uri) => {
+                MockResp::json_from_optionals("unsupported_grant_type", desc, uri)
+            }
+            &ErrorKind::InvalidScope(ref desc, ref uri) => {
+                MockResp::json_from_optionals("invalid_scope", desc, uri)
+            }
+            _ => MockResp {
+                body: "Internal Server Error".to_string(),
+            },
+        }
+    }
 }
 
 impl<T> From<T> for MockResp

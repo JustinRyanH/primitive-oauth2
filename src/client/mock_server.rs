@@ -252,6 +252,7 @@ impl ServerResp {
         }
         out
     }
+
     pub fn as_response<T: Into<String>>(value: T) -> ServerResp {
         ServerResp::Response(Ok(String::from(value.into()).into()))
     }
@@ -308,7 +309,7 @@ impl ServerResp {
     }
 
     pub fn response_err(err: Error) -> Self {
-        ServerResp::Response(Err(err.into()))
+        ServerResp::Response(Ok(MockResp::from(err.kind())))
     }
 
     pub fn response(self) -> Result<MockResp> {
