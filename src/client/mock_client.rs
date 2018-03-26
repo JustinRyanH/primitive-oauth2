@@ -72,7 +72,7 @@ impl MockClient {
             ),
             scopes: vec![
                 "api.example.com/user.profile".to_string(),
-                "api.example.com/user.me".to_string(),
+                "api.example.com/add_item".to_string(),
             ],
             redirect_uri: "https://localhost:8080/oauth/example",
             access_type: AccessType::Grant,

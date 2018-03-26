@@ -4,6 +4,9 @@ use errors::{Error, ErrorKind, Result};
 use client::params::UrlQueryParams;
 use client::mock_client::{MockReq, MockResp};
 
+const VALID_SCOPES: [&'static str; 2] =
+    ["api.example.com/user.profile", "api.example.com/add_item"];
+
 #[derive(Clone, Copy, Debug, PartialEq)]
 pub enum MockErrKind {
     InvalidRequest,
@@ -155,6 +158,27 @@ impl MockServer {
         }
     }
 
+    pub fn parse_scope(&self, url: &Url) -> Result<()> {
+        let scope: Vec<String> = match UrlQueryParams::from(url.query_pairs()).get("scope") {
+            Some(v) => v.into_iter().collect(),
+            None => vec![],
+        };
+
+        for value in scope {
+            if !VALID_SCOPES.into_iter().any(|&v| v == value) {
+                return Err(Error::invalid_request(
+                    None,
+                    Some(format!(
+                        "https://docs.example.com/scopes?invalid_scope={}",
+                        value
+                    )),
+                ));
+            }
+        }
+
+        Ok(())
+    }
+
     pub fn auth(&self, req: MockReq) -> ServerResp {
         let state = match MockServer::parse_state(&req.url) {
             Ok(k) => k,
@@ -162,12 +186,17 @@ impl MockServer {
         };
 
         match MockServer::parse_client_id(&req.url) {
-            Ok(v) => v,
+            Ok(_) => (),
             Err(e) => return ServerResp::from(e),
         };
 
         match self.parse_redirect_uri(&req.url) {
-            Ok(v) => v,
+            Ok(_) => (),
+            Err(e) => return ServerResp::from(e),
+        };
+
+        match self.parse_scope(&req.url) {
+            Ok(_) => (),
             Err(e) => return ServerResp::from(e),
         };
 
@@ -241,7 +270,7 @@ impl ServerResp {
             out.push_str(format!("error_description={}", desc).as_ref());
         }
         if let &Some(ref u) = uri {
-            out.push_str(u.as_ref());
+            out.push_str(format!("error_uri={}", u).as_ref());
         }
         out
     }

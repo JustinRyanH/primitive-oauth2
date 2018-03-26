@@ -69,7 +69,7 @@ mod given_mock_client {
                 .contains_key("scope".to_string())
                 .is_equal_to(ParamValue::from_iter(vec![
                     "api.example.com/user.profile",
-                    "api.example.com/user.me",
+                    "api.example.com/add_item",
                 ]));
         }
 

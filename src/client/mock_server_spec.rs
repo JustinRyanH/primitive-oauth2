@@ -72,7 +72,12 @@ mod describe_mock_sever {
 
                 #[test]
                 fn it_returns_400_response() {
-                    let expected_req: MockReq = Url::parse("https://example.com?error=unauthorized_client&error_description=Unauthorized: Client Not Authorized").unwrap().into();
+                    let expected_req: MockReq = Url::parse(
+                        "https://example.com?\
+                         error=unauthorized_client&\
+                         error_description=Unauthorized: Client Not Authorized",
+                    ).unwrap()
+                        .into();
                     assert_that(&server().send_request(request()).redirect())
                         .is_ok()
                         .is_equal_to(expected_req);
@@ -100,7 +105,12 @@ mod describe_mock_sever {
 
                 #[test]
                 fn it_returns_400_response() {
-                    let expected_req: MockReq = Url::parse("https://example.com?error=invalid_request&error_description=Bad Request: Missing `client_id`").unwrap().into();
+                    let expected_req: MockReq = Url::parse(
+                        "https://example.com?\
+                         error=invalid_request\
+                         &error_description=Bad Request: Missing `client_id`",
+                    ).unwrap()
+                        .into();
                     assert_that(&server().send_request(request()).redirect())
                         .is_ok()
                         .is_equal_to(expected_req);
@@ -138,8 +148,13 @@ mod describe_mock_sever {
                     #[test]
                     /// Returns [4.1.2.1. Error Response](https://tools.ietf.org/html/rfc6749#section-4.1.2.1)
                     /// with an invalid request
-                    fn it_returns_a_response_with_error() {
-                        let expected_req: MockReq = Url::parse("https://example.com?error=invalid_request&error_description=Bad Request: Missing `redirect_uri`").unwrap().into();
+                    fn it_returns_a_redirect_with_error() {
+                        let expected_req: MockReq = Url::parse(
+                            "https://example.com?\
+                             error=invalid_request&\
+                             error_description=Bad Request: Missing `redirect_uri`",
+                        ).unwrap()
+                            .into();
                         assert_that(&server()
                             .require_redirect()
                             .send_request(request(params()))
@@ -164,8 +179,13 @@ mod describe_mock_sever {
                     }
 
                     #[test]
-                    fn it_returns_a_response_with_error() {
-                        let expected_req: MockReq = Url::parse("https://example.com?error=invalid_request&error_description=Bad Request: Redirect Uri does not match valid uri").unwrap().into();
+                    fn it_returns_a_redirect_with_error() {
+                        let expected_req: MockReq = Url::parse(
+                            "https://example.com?\
+                             error=invalid_request&\
+                             error_description=Bad Request: Redirect Uri does not match valid uri",
+                        ).unwrap()
+                            .into();
                         assert_that(&server()
                             .require_redirect()
                             .send_request(request(params()))
@@ -205,9 +225,66 @@ mod describe_mock_sever {
 
         /// 4.1.1 scope OPTIONAL.  The scope of the access request [as described by Section 3.3.](https://tools.ietf.org/html/rfc6749#section-3.3)
         mod scope_param {
-            mod when_missing {}
-            mod when_valid {}
-            mod when_bad {}
+            use super::*;
+            mod when_missing {
+                use super::*;
+
+                fn params() -> Vec<(&'static str, &'static str)> {
+                    vec![
+                        ("response_type", "code"),
+                        ("client_id", "someid@example.com"),
+                        ("redirect_uri", "https://localhost:8080/oauth/example"),
+                        ("state", "MOCK_STATE"),
+                    ]
+                }
+
+                fn request() -> MockReq {
+                    MockReq {
+                        url: Url::parse_with_params("https://example.net/auth", params()).unwrap(),
+                        body: "".to_string(),
+                    }
+                }
+
+                #[test]
+                fn returns_a_redirect() {
+                    assert_that(&server().send_request(request()).redirect()).is_ok();
+                }
+            }
+            mod when_bad {
+                use super::*;
+                fn params() -> Vec<(&'static str, &'static str)> {
+                    vec![
+                        ("response_type", "code"),
+                        ("client_id", "someid@example.com"),
+                        ("redirect_uri", "https://localhost:8080/oauth/example"),
+                        ("scope", "api.example.com/fasfa"),
+                        ("state", "MOCK_STATE"),
+                    ]
+                }
+
+                fn request() -> MockReq {
+                    MockReq {
+                        url: Url::parse_with_params("https://example.net/auth", params()).unwrap(),
+                        body: "".to_string(),
+                    }
+                }
+
+                #[test]
+                fn it_returns_a_redirect_with_error() {
+                    let expected_req: MockReq = Url::parse(
+                        "https://example.com?\
+                         error=invalid_request&\
+                         error_uri=https://docs.example.com/scopes?invalid_scope=api.example.com/fasfa",
+                    ).unwrap()
+                        .into();
+                    assert_that(&server()
+                        .require_redirect()
+                        .send_request(request())
+                        .redirect())
+                        .is_ok()
+                        .is_equal_to(expected_req);
+                }
+            }
         }
 
         /// 4.1.1 state RECOMMENDED.
@@ -237,8 +314,13 @@ mod describe_mock_sever {
                 }
 
                 #[test]
-                fn it_returns_a_response_with_error() {
-                    let expected_req: MockReq = Url::parse("https://example.com?error=invalid_request&error_description=Bad Request: Missing `state`").unwrap().into();
+                fn it_returns_a_redirect_with_error() {
+                    let expected_req: MockReq = Url::parse(
+                        "https://example.com?\
+                         error=invalid_request&\
+                         error_description=Bad Request: Missing `state`",
+                    ).unwrap()
+                        .into();
                     // It is a Response
                     assert_that(&server().send_request(request()).redirect())
                         .is_ok()
@@ -265,8 +347,13 @@ mod describe_mock_sever {
                 }
 
                 #[test]
-                fn it_returns_a_response_with_error() {
-                    let expected_req: MockReq = Url::parse("https://example.com?error=invalid_request&error_description=Bad Request: Missing `state`").unwrap().into();
+                fn it_returns_a_redirect_with_error() {
+                    let expected_req: MockReq = Url::parse(
+                        "https://example.com?\
+                         error=invalid_request\
+                         &error_description=Bad Request: Missing `state`",
+                    ).unwrap()
+                        .into();
                     // It is a Response
                     assert_that(&server().send_request(request()).redirect())
                         .is_ok()
