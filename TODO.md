@@ -9,24 +9,27 @@ Phase 1
 
 Phase 2
 ----
-- [ ] Create an Ext Oauth2 Client that is Future, and 
+- [/] Create an Ext Oauth2 Client that is Future, and 
   one with regular result
 - [ ] MockClient without state
-- [ ] MockServer can create each of the potential error responses for Redirect
-- [ ] MockServer can return a token
-- [ ] MockServer can return each of the Error Types for 
-- [ ] The big cleanup (Document)
+- [X] MockServer can create each of the potential error responses for Redirect
+- [X] MockServer can return a token
 
-The Big Clean Up
+Phase 2.1 - Mock Server
 ----
-- [ ] Drop Rspec in favor of layers of modules
+- [x] Create Mock Auth client to define a significant portion of the error vector
+- [ ] Remove the generic From Error into two Different FromError methods 
+- [ ] Implement Json Responses (SerDe)
+
+Phase 2.2 - The Big Clean Up
+----
+- [X] Drop Rspec in favor of layers of modules
 - [ ] Streamline the Authenticator
 - [ ] Streamline the Authenticator Specs
 - [ ] Streamline Mock Client
 - [ ] Streamline Mock Client Spec
 - [ ] Rename MockStorage into MemoryStory
 - [ ] Create NullStorage
-- [ ] Move MockClient into Feature
 
 Phase 3
 ----
