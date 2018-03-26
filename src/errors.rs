@@ -129,6 +129,10 @@ impl Error {
     pub fn invalid_request<T: Into<String>>(desc: Option<T>, uri: Option<T>) -> Error {
         ErrorKind::InvalidRequest(desc.map(|v| v.into()), uri.map(|v| v.into())).into()
     }
+
+    pub fn unauthorized_client<T: Into<String>>(desc: Option<T>, uri: Option<T>) -> Error {
+        ErrorKind::UnauthorizedClient(desc.map(|v| v.into()), uri.map(|v| v.into())).into()
+    }
 }
 
 impl PartialEq for Error {

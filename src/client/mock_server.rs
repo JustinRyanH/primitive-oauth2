@@ -93,7 +93,10 @@ impl MockServer {
                     "Bad Request: Expected Single Parameter, found many",
                 ))?
                 .clone()),
-            None => Err(Error::msg("Bad Request: Missing `state`")),
+            None => Err(Error::invalid_request(
+                Some("Bad Request: Missing `state`"),
+                None,
+            )),
         }
     }
 
@@ -104,11 +107,19 @@ impl MockServer {
                     "Bad Request: Expected Single Parameter, found many",
                 ))?
                 .clone(),
-            None => return Err(Error::msg("Bad Request: Missing `client_id`")),
+            None => {
+                return Err(Error::invalid_request(
+                    Some("Bad Request: Missing `client_id`"),
+                    None,
+                ))
+            }
         };
 
         if client_id != "someid@example.com" {
-            return Err(Error::msg("Bad Request: Invalid `client_id`"));
+            return Err(Error::unauthorized_client(
+                Some("Unauthorized: Client Not Authorized"),
+                None,
+            ));
         }
         Ok(client_id)
     }
@@ -130,8 +141,9 @@ impl MockServer {
         match raw_redirect_url {
             Some(url) => {
                 if url.as_str() != "https://localhost:8080/oauth/example" {
-                    return Err(Error::msg(
-                        "Bad Request: Redirect Uri does not match valid uri",
+                    return Err(Error::invalid_request(
+                        Some("Bad Request: Redirect Uri does not match valid uri"),
+                        None,
                     ));
                 }
                 match Url::parse(url.as_ref()) {
@@ -207,6 +219,12 @@ impl From<Error> for ServerResp {
             &ErrorKind::InvalidRequest(ref desc, ref uri) => {
                 return ServerResp::from(MockReq::from_str(format!(
                     "https://example.com?error=invalid_request&{}",
+                    ServerResp::params_from_optionals(desc, uri)
+                )))
+            }
+            &ErrorKind::UnauthorizedClient(ref desc, ref uri) => {
+                return ServerResp::from(MockReq::from_str(format!(
+                    "https://example.com?error=unauthorized_client&{}",
                     ServerResp::params_from_optionals(desc, uri)
                 )))
             }

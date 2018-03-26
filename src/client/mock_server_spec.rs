@@ -2,7 +2,7 @@ mod describe_mock_sever {
     use url::Url;
     use spectral::prelude::*;
 
-    use client::mock_client::{MockReq, MockResp};
+    use client::mock_client::MockReq;
     use client::mock_server::*;
 
     fn server() -> MockServer {
@@ -10,9 +10,6 @@ mod describe_mock_sever {
     }
 
     mod route_token {
-        use super::*;
-
-        ///
         mod happy_case {}
     }
 
@@ -75,10 +72,10 @@ mod describe_mock_sever {
 
                 #[test]
                 fn it_returns_400_response() {
-                    let expected_resp: MockResp = "Bad Request: Invalid `client_id`".into();
-                    assert_that(&server().send_request(request()).response())
+                    let expected_req: MockReq = Url::parse("https://example.com?error=unauthorized_client&error_description=Unauthorized: Client Not Authorized").unwrap().into();
+                    assert_that(&server().send_request(request()).redirect())
                         .is_ok()
-                        .is_equal_to(expected_resp);
+                        .is_equal_to(expected_req);
                 }
             }
             mod when_missing {
@@ -103,10 +100,10 @@ mod describe_mock_sever {
 
                 #[test]
                 fn it_returns_400_response() {
-                    let expected_resp: MockResp = "Bad Request: Missing `client_id`".into();
-                    assert_that(&server().send_request(request()).response())
+                    let expected_req: MockReq = Url::parse("https://example.com?error=invalid_request&error_description=Bad Request: Missing `client_id`").unwrap().into();
+                    assert_that(&server().send_request(request()).redirect())
                         .is_ok()
-                        .is_equal_to(expected_resp);
+                        .is_equal_to(expected_req);
                 }
             }
         }
@@ -168,14 +165,13 @@ mod describe_mock_sever {
 
                     #[test]
                     fn it_returns_a_response_with_error() {
-                        let expected_resp: MockResp =
-                            "Bad Request: Redirect Uri does not match valid uri".into();
+                        let expected_req: MockReq = Url::parse("https://example.com?error=invalid_request&error_description=Bad Request: Redirect Uri does not match valid uri").unwrap().into();
                         assert_that(&server()
                             .require_redirect()
                             .send_request(request(params()))
-                            .response())
+                            .redirect())
                             .is_ok()
-                            .is_equal_to(expected_resp);
+                            .is_equal_to(expected_req);
                     }
                 }
             }
@@ -242,11 +238,11 @@ mod describe_mock_sever {
 
                 #[test]
                 fn it_returns_a_response_with_error() {
-                    let expected_resp: MockResp = "Bad Request: Missing `state`".into();
+                    let expected_req: MockReq = Url::parse("https://example.com?error=invalid_request&error_description=Bad Request: Missing `state`").unwrap().into();
                     // It is a Response
-                    assert_that(&server().send_request(request()).response())
+                    assert_that(&server().send_request(request()).redirect())
                         .is_ok()
-                        .is_equal_to(expected_resp);
+                        .is_equal_to(expected_req);
                 }
 
             }
@@ -270,11 +266,11 @@ mod describe_mock_sever {
 
                 #[test]
                 fn it_returns_a_response_with_error() {
-                    let expected_resp: MockResp = "Bad Request: Missing `state`".into();
+                    let expected_req: MockReq = Url::parse("https://example.com?error=invalid_request&error_description=Bad Request: Missing `state`").unwrap().into();
                     // It is a Response
-                    assert_that(&server().send_request(request()).response())
+                    assert_that(&server().send_request(request()).redirect())
                         .is_ok()
-                        .is_equal_to(expected_resp);
+                        .is_equal_to(expected_req);
                 }
             }
         }
