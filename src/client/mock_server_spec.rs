@@ -10,7 +10,44 @@ mod describe_mock_sever {
     }
 
     mod route_token {
-        mod happy_case {}
+        use super::*;
+
+        mod happy_case {
+            use super::*;
+
+            fn params() -> Vec<(&'static str, &'static str)> {
+                vec![
+                    ("response_type", "token"),
+                    ("client_id", "someid@example.com"),
+                    ("client_secret", "MOCK_SECRET"),
+                    ("redirect_uri", "https://localhost:8080/oauth/example"),
+                    ("state", "MOCK_STATE"),
+                ]
+            }
+
+            fn request() -> MockReq {
+                MockReq {
+                    url: Url::parse_with_params("https://example.net/token", params()).unwrap(),
+                    body: "".to_string(),
+                }
+            }
+
+            #[test]
+            fn returns_a_response() {
+                assert_that(&server().send_request(request()).response()).is_ok();
+                // TODO: Serialized Into Response
+            }
+        }
+
+        mod response_type {}
+
+        mod client_id {}
+
+        mod client_secret {}
+
+        mod redirect_uri {}
+
+        mod state {}
     }
 
     /// Used Simulate the [4.1.1.  Authorization Request](https://tools.ietf.org/html/rfc6749#section-4.1.1)
@@ -364,7 +401,6 @@ mod describe_mock_sever {
     }
 
     mod no_route {
-
         #[test]
         #[should_panic]
         fn it_returns_404_response() {

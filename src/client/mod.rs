@@ -111,3 +111,22 @@ impl ValidReq {
         Ok(ValidReq { code, state })
     }
 }
+
+/// [4.2.2.  Access Token Response](https://tools.ietf.org/html/rfc6749#section-4.2.2)
+#[derive(Debug, PartialEq, Clone, Serialize, Deserialize)]
+pub struct AccessTokenResponse {
+    pub access_token: String,
+    pub token_type: String,
+    pub expires_in: Option<usize>,
+    pub scope: Option<Vec<String>>,
+    pub state: Option<String>,
+}
+
+/// [4.2.2.1.  Error Response](https://tools.ietf.org/html/rfc6749#section-4.2.2.1)
+/// #[derive(Debug, PartialEq, Clone, Serialize, Deserialize)]
+pub struct ErrorResponse {
+    pub error: String,
+    pub error_description: Option<String>,
+    pub error_uri: Option<String>,
+    pub state: Option<String>,
+}
