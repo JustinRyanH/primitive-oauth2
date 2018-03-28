@@ -163,26 +163,26 @@ impl MockServer {
 
     pub fn auth(&self, req: MockReq) -> ServerResp {
         if let Some(ref err) = self.error {
-            return ServerResp::redirect_ref_err(err);
+            return ServerResp::redirect_err(err);
         }
         let state = match MockServer::parse_state(&req.url) {
             Ok(k) => k,
-            Err(e) => return ServerResp::redirect_err(e),
+            Err(e) => return ServerResp::redirect_err(&e),
         };
 
         match MockServer::parse_client_id(&req.url) {
             Ok(_) => (),
-            Err(e) => return ServerResp::redirect_err(e),
+            Err(e) => return ServerResp::redirect_err(&e),
         };
 
         match self.parse_redirect_uri(&req.url) {
             Ok(_) => (),
-            Err(e) => return ServerResp::redirect_err(e),
+            Err(e) => return ServerResp::redirect_err(&e),
         };
 
         match self.parse_scope(&req.url) {
             Ok(_) => (),
-            Err(e) => return ServerResp::redirect_err(e),
+            Err(e) => return ServerResp::redirect_err(&e),
         };
 
         Ok(MockReq {
