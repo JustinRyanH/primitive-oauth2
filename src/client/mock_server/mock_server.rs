@@ -204,7 +204,7 @@ impl MockServer {
         match req.url.path() {
             "/auth" => self.auth(req),
             "/token" => self.token(req),
-            _ => ServerResp::response_err(Error::msg("404: Route not found")),
+            _ => ServerResp::response_err(&Error::msg("404: Route not found")),
         }
     }
 }

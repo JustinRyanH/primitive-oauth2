@@ -82,10 +82,10 @@ impl ServerResp {
             }
             _ => (),
         };
-        ServerResp::Response(Ok(MockResp::from(err.kind())))
+        ServerResp::response_err(err)
     }
 
-    pub fn response_err(err: Error) -> Self {
+    pub fn response_err(err: &Error) -> Self {
         ServerResp::Response(Ok(MockResp::from(err.kind())))
     }
 
