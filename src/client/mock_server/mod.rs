@@ -4,7 +4,7 @@ mod spec;
 
 use url::Url;
 
-use errors::{Error, ErrorKind, Result};
+use errors::{Error, Result};
 use client::params::UrlQueryParams;
 use client::mock_client::{MockReq, MockResp};
 
@@ -15,7 +15,7 @@ const VALID_SCOPES: [&'static str; 2] =
 
 #[derive(Debug, PartialEq)]
 pub struct MockServer {
-    pub error: Option<ErrorKind>,
+    pub error: Option<Error>,
     pub redirect_uri_required: bool,
     pub code: &'static str,
     pub last_state: Option<&'static str>,
@@ -31,9 +31,12 @@ impl MockServer {
         }
     }
 
-    pub fn with_error(self, error: ErrorKind) -> MockServer {
+    pub fn with_error<T>(self, error: T) -> MockServer
+    where
+        T: Into<Error>,
+    {
         MockServer {
-            error: Some(error),
+            error: Some(error.into()),
             code: self.code,
             redirect_uri_required: self.redirect_uri_required,
             last_state: self.last_state,

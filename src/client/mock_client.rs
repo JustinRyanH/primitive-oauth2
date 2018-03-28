@@ -1,5 +1,3 @@
-use std::sync::Arc;
-
 use futures::future::err as FutErr;
 use futures::future::{Future, IntoFuture};
 use url::Url;
@@ -7,7 +5,6 @@ use url::Url;
 use errors::{ErrorKind, Result};
 use client::params::UrlQueryParams;
 use client::OauthClient;
-use client::mock_server::*;
 use client::*;
 use client::storage::{MockMemoryStorage, MockStorageKey};
 use client::authenticator::BaseAuthenticator;

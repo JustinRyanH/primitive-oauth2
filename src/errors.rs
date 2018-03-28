@@ -129,9 +129,20 @@ impl Error {
     pub fn invalid_request<T: Into<String>>(desc: Option<T>, uri: Option<T>) -> Error {
         ErrorKind::InvalidRequest(desc.map(|v| v.into()), uri.map(|v| v.into())).into()
     }
-
+    pub fn invalid_client<T: Into<String>>(desc: Option<T>, uri: Option<T>) -> Error {
+        ErrorKind::InvalidClient(desc.map(|v| v.into()), uri.map(|v| v.into())).into()
+    }
+    pub fn invalid_grant<T: Into<String>>(desc: Option<T>, uri: Option<T>) -> Error {
+        ErrorKind::InvalidGrant(desc.map(|v| v.into()), uri.map(|v| v.into())).into()
+    }
     pub fn unauthorized_client<T: Into<String>>(desc: Option<T>, uri: Option<T>) -> Error {
         ErrorKind::UnauthorizedClient(desc.map(|v| v.into()), uri.map(|v| v.into())).into()
+    }
+    pub fn unsupported_grant_type<T: Into<String>>(desc: Option<T>, uri: Option<T>) -> Error {
+        ErrorKind::UnsupportedGrantType(desc.map(|v| v.into()), uri.map(|v| v.into())).into()
+    }
+    pub fn invalid_scope<T: Into<String>>(desc: Option<T>, uri: Option<T>) -> Error {
+        ErrorKind::InvalidScope(desc.map(|v| v.into()), uri.map(|v| v.into())).into()
     }
 }
 
