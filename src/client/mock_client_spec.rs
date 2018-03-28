@@ -128,27 +128,7 @@ mod given_mock_client {
     }
 
     mod request_token {
-        use super::*;
-
-        mod with_code {
-            use super::*;
-
-            fn subject() -> Result<MockResp> {
-                let env = env();
-                let subject_of_interest = MockClient::new()
-                    .unwrap()
-                    .with_code("MOCK_CODE")
-                    .request_token();
-
-                env.clone().pool.clone().spawn(subject_of_interest).wait()
-            }
-
-            #[test]
-            fn it_returns_a_response_with_a_token() {
-                assert_that(&subject()).is_ok();
-            }
-        }
-
+        mod with_code {}
     }
 
     mod handle_token_response {

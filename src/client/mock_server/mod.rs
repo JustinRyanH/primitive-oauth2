@@ -13,28 +13,9 @@ use self::server_resp::ServerResp;
 const VALID_SCOPES: [&'static str; 2] =
     ["api.example.com/user.profile", "api.example.com/add_item"];
 
-#[derive(Clone, Copy, Debug, PartialEq)]
-pub enum MockErrKind {
-    InvalidRequest,
-    UnauthorizedClient,
-    AccessDenied,
-    UnsupportedResponseType,
-    InvalidScope,
-    ServerError,
-    TemporarilyUnavailable,
-    Unknown,
-}
-
-#[derive(Clone, Debug, PartialEq)]
-pub struct MockError {
-    pub kind: MockErrKind,
-    pub description: Option<String>,
-    pub url: Option<String>,
-}
-
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, PartialEq)]
 pub struct MockServer {
-    pub error: Option<MockError>,
+    pub error: Option<ErrorKind>,
     pub redirect_uri_required: bool,
     pub code: &'static str,
     pub last_state: Option<&'static str>,
@@ -50,7 +31,7 @@ impl MockServer {
         }
     }
 
-    pub fn with_error(self, error: MockError) -> MockServer {
+    pub fn with_error(self, error: ErrorKind) -> MockServer {
         MockServer {
             error: Some(error),
             code: self.code,

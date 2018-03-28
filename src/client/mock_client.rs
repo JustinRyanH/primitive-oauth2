@@ -1,3 +1,5 @@
+use std::sync::Arc;
+
 use futures::future::err as FutErr;
 use futures::future::{Future, IntoFuture};
 use url::Url;
@@ -105,7 +107,7 @@ pub struct MockClient {
     pub redirect_uri: &'static str,
     pub access_type: AccessType,
     pub code: Option<String>,
-    pub server: MockServer,
+    pub server: Option<Arc<MockServer>>,
 }
 
 impl MockClient {
@@ -124,7 +126,7 @@ impl MockClient {
             redirect_uri: "https://localhost:8080/oauth/example",
             access_type: AccessType::Grant,
             code: None,
-            server: MockServer::new(),
+            server: None,
         })
     }
 
@@ -146,7 +148,7 @@ impl MockClient {
             redirect_uri: self.redirect_uri,
             access_type: self.access_type,
             code: self.code,
-            server,
+            server: Some(Arc::new(server)),
         }
     }
 }
@@ -194,21 +196,22 @@ impl OauthClient<MockMemoryStorage> for MockClient {
         }
     }
 
-    fn request_token(&self) -> FutResult<MockResp> {
-        let token_with_params: Url =
-            match Url::parse_with_params(self.auth.get_token_uri(), vec![("foo", "bar")]) {
-                Ok(k) => k,
-                Err(e) => return FutErr(e.into()).pack(),
-            };
+    fn get_access_token_request(&self) -> FutResult<MockReq> {
+        unimplemented!()
+        // let token_with_params: Url =
+        //     match Url::parse_with_params(self.auth.get_token_uri(), vec![("foo", "bar")]) {
+        //         Ok(k) => k,
+        //         Err(e) => return FutErr(e.into()).pack(),
+        //     };
 
-        self.server
-            .send_request(MockReq {
-                url: token_with_params,
-                body: String::from(""),
-            })
-            .response()
-            .into_future()
-            .pack()
+        // self.server
+        //     .send_request(MockReq {
+        //         url: token_with_params,
+        //         body: String::from(""),
+        //     })
+        //     .response()
+        //     .into_future()
+        //     .pack()
     }
 
     fn handle_token_response(self, _: MockResp, _: &mut MockMemoryStorage) -> FutResult<Self> {

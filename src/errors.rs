@@ -137,8 +137,38 @@ impl Error {
 
 impl PartialEq for Error {
     fn eq(&self, other: &Error) -> bool {
-        match (self.kind(), other.kind()) {
+        self.kind() == other.kind()
+    }
+}
+
+impl PartialEq for ErrorKind {
+    fn eq(&self, other: &ErrorKind) -> bool {
+        match (self, other) {
             (&ErrorKind::Msg(ref l), &ErrorKind::Msg(ref r)) => l == r,
+            (
+                &ErrorKind::InvalidRequest(ref this_desc, ref this_uri),
+                &ErrorKind::InvalidRequest(ref other_desc, ref other_uri),
+            ) => this_desc == other_desc && this_uri == other_uri,
+            (
+                &ErrorKind::InvalidClient(ref this_desc, ref this_uri),
+                &ErrorKind::InvalidClient(ref other_desc, ref other_uri),
+            ) => this_desc == other_desc && this_uri == other_uri,
+            (
+                &ErrorKind::InvalidGrant(ref this_desc, ref this_uri),
+                &ErrorKind::InvalidGrant(ref other_desc, ref other_uri),
+            ) => this_desc == other_desc && this_uri == other_uri,
+            (
+                &ErrorKind::UnauthorizedClient(ref this_desc, ref this_uri),
+                &ErrorKind::UnauthorizedClient(ref other_desc, ref other_uri),
+            ) => this_desc == other_desc && this_uri == other_uri,
+            (
+                &ErrorKind::UnsupportedGrantType(ref this_desc, ref this_uri),
+                &ErrorKind::UnsupportedGrantType(ref other_desc, ref other_uri),
+            ) => this_desc == other_desc && this_uri == other_uri,
+            (
+                &ErrorKind::InvalidScope(ref this_desc, ref this_uri),
+                &ErrorKind::InvalidScope(ref other_desc, ref other_uri),
+            ) => this_desc == other_desc && this_uri == other_uri,
             _ => false,
         }
     }
