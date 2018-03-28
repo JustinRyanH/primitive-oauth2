@@ -107,7 +107,6 @@ pub struct MockClient {
     pub redirect_uri: &'static str,
     pub access_type: AccessType,
     pub code: Option<String>,
-    pub server: Option<Arc<MockServer>>,
 }
 
 impl MockClient {
@@ -126,7 +125,6 @@ impl MockClient {
             redirect_uri: "https://localhost:8080/oauth/example",
             access_type: AccessType::Grant,
             code: None,
-            server: None,
         })
     }
 
@@ -137,18 +135,6 @@ impl MockClient {
             redirect_uri: self.redirect_uri,
             access_type: self.access_type,
             code: Some(code.into()),
-            server: self.server,
-        }
-    }
-
-    pub fn with_server(self, server: MockServer) -> MockClient {
-        MockClient {
-            auth: self.auth,
-            scopes: self.scopes,
-            redirect_uri: self.redirect_uri,
-            access_type: self.access_type,
-            code: self.code,
-            server: Some(Arc::new(server)),
         }
     }
 }
