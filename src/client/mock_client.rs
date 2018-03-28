@@ -181,20 +181,6 @@ impl OauthClient<MockMemoryStorage> for MockClient {
 
     fn get_access_token_request(&self) -> FutResult<MockReq> {
         unimplemented!()
-        // let token_with_params: Url =
-        //     match Url::parse_with_params(self.auth.get_token_uri(), vec![("foo", "bar")]) {
-        //         Ok(k) => k,
-        //         Err(e) => return FutErr(e.into()).pack(),
-        //     };
-
-        // self.server
-        //     .send_request(MockReq {
-        //         url: token_with_params,
-        //         body: String::from(""),
-        //     })
-        //     .response()
-        //     .into_future()
-        //     .pack()
     }
 
     fn handle_token_response(self, _: MockResp, _: &mut MockMemoryStorage) -> FutResult<Self> {

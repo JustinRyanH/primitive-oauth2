@@ -4,6 +4,7 @@ mod describe_mock_sever {
 
     use client::mock_client::MockReq;
     use client::mock_server::*;
+    use errors::Error;
 
     fn server() -> MockServer {
         MockServer::new()
@@ -79,6 +80,40 @@ mod describe_mock_sever {
             #[test]
             fn returns_a_redirect() {
                 assert_that(&server().send_request(request()).redirect()).is_ok();
+            }
+        }
+
+        mod with_error {
+            use super::*;
+
+            fn params() -> Vec<(&'static str, &'static str)> {
+                vec![]
+            }
+
+            fn server() -> MockServer {
+                MockServer::new().with_error(Error::invalid_request(
+                    None,
+                    Some("https://doc.example.net/invalid_request"),
+                ))
+            }
+            fn request() -> MockReq {
+                MockReq {
+                    url: Url::parse_with_params("https://example.net/auth", params()).unwrap(),
+                    body: "".to_string(),
+                }
+            }
+
+            #[test]
+            fn returns_a_redirect_with_error() {
+                let expected_req: MockReq = Url::parse(
+                    "https://example.com?\
+                     error=invalid_request&\
+                     error_uri=https://doc.example.net/invalid_request",
+                ).unwrap()
+                    .into();
+                assert_that(&server().send_request(request()).redirect())
+                    .is_ok()
+                    .is_equal_to(expected_req);
             }
         }
 
