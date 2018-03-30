@@ -5,6 +5,43 @@ use client::params::UrlQueryParams;
 use client::mock_client::{MockReq, MockResp};
 use client::mock_server::{ServerResp, VALID_SCOPES};
 
+#[inline]
+pub fn validate_required_uri(url: String) -> Result<Option<Url>> {
+    if url.as_str() != "https://localhost:8080/oauth/example" {
+        return Err(Error::invalid_request(
+            Some("Bad Request: Redirect Uri does not match valid uri"),
+            None,
+        ));
+    }
+    match Url::parse(url.as_ref()) {
+        Ok(u) => Ok(Some(u)),
+        Err(e) => Err(e.into()),
+    }
+}
+
+#[inline]
+pub fn maybe_single_param(name: &'static str, url: &Url) -> Option<String> {
+    match UrlQueryParams::from(url.query_pairs()).get(name) {
+        Some(v) => v.single().map(|v| v.clone()),
+        None => None,
+    }
+}
+
+#[inline]
+pub fn single_param(name: &'static str, url: &Url) -> Result<String> {
+    match UrlQueryParams::from(url.query_pairs()).get(name) {
+        Some(v) => Ok(v.single()
+            .ok_or(Error::msg(
+                "Bad Request: Expected Single Parameter, found many",
+            ))?
+            .clone()),
+        None => Err(Error::invalid_request(
+            Some(format!("Bad Request: Missing `{}`", name)),
+            None,
+        )),
+    }
+}
+
 #[derive(Debug, PartialEq)]
 pub struct MockServer {
     pub error: Option<Error>,
@@ -72,33 +109,11 @@ impl MockServer {
     }
 
     pub fn parse_state(url: &Url) -> Result<String> {
-        match UrlQueryParams::from(url.query_pairs()).get("state") {
-            Some(v) => Ok(v.single()
-                .ok_or(Error::msg(
-                    "Bad Request: Expected Single Parameter, found many",
-                ))?
-                .clone()),
-            None => Err(Error::invalid_request(
-                Some("Bad Request: Missing `state`"),
-                None,
-            )),
-        }
+        single_param("state", url)
     }
 
     pub fn parse_client_id(url: &Url) -> Result<String> {
-        let client_id = match UrlQueryParams::from(url.query_pairs()).get("client_id") {
-            Some(v) => v.single()
-                .ok_or(Error::msg(
-                    "Bad Request: Expected Single Parameter, found many",
-                ))?
-                .clone(),
-            None => {
-                return Err(Error::invalid_request(
-                    Some("Bad Request: Missing `client_id`"),
-                    None,
-                ))
-            }
-        };
+        let client_id = single_param("client_id", url)?;
 
         if client_id != "someid@example.com" {
             return Err(Error::unauthorized_client(
@@ -110,8 +125,8 @@ impl MockServer {
     }
 
     pub fn parse_redirect_uri(&self, url: &Url) -> Result<Option<Url>> {
-        let raw_redirect_url = match UrlQueryParams::from(url.query_pairs()).get("redirect_uri") {
-            Some(v) => v.single().map(|v| v.clone()),
+        match maybe_single_param("redirect_uri", url) {
+            Some(v) => Ok(validate_required_uri(v)?),
             None => match self.redirect_uri_required {
                 true => {
                     return Err(Error::invalid_request(
@@ -119,24 +134,8 @@ impl MockServer {
                         None,
                     ))
                 }
-                false => None,
+                false => Ok(None),
             },
-        };
-
-        match raw_redirect_url {
-            Some(url) => {
-                if url.as_str() != "https://localhost:8080/oauth/example" {
-                    return Err(Error::invalid_request(
-                        Some("Bad Request: Redirect Uri does not match valid uri"),
-                        None,
-                    ));
-                }
-                match Url::parse(url.as_ref()) {
-                    Ok(u) => Ok(Some(u)),
-                    _ => unreachable!(),
-                }
-            }
-            None => Ok(None),
         }
     }
 
