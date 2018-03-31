@@ -1,5 +1,6 @@
-use url;
+use serde_json;
 use std::sync;
+use url;
 
 error_chain! {
     errors {
@@ -112,6 +113,7 @@ error_chain! {
 
     foreign_links {
         Url(url::ParseError);
+        SerdeJson(serde_json::Error);
     }
 }
 

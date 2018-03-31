@@ -6,16 +6,16 @@ pub mod params;
 pub mod storage;
 
 #[cfg(test)]
-pub mod params_spec;
-#[cfg(test)]
-pub mod storage_spec;
+pub mod authenticator_spec;
 #[cfg(test)]
 pub mod mock_client_spec;
 #[cfg(test)]
-pub mod authenticator_spec;
+pub mod params_spec;
+#[cfg(test)]
+pub mod storage_spec;
 
+use errors::{Error, ErrorKind, Result};
 use futures::future::Future;
-use errors::{Error, Result};
 
 #[derive(Debug, Clone, Copy, PartialEq, Serialize, Deserialize, Hash)]
 pub enum AccessType {
@@ -121,10 +121,91 @@ pub struct AccessTokenResponse {
 }
 
 /// [4.2.2.1.  Error Response](https://tools.ietf.org/html/rfc6749#section-4.2.2.1)
-/// #[derive(Debug, PartialEq, Clone, Serialize, Deserialize)]
+#[derive(Debug, PartialEq, Clone, Serialize, Deserialize)]
 pub struct ErrorResponse {
-    pub error: String,
+    pub error: &'static str,
     pub error_description: Option<String>,
     pub error_uri: Option<String>,
     pub state: Option<String>,
+}
+
+impl ErrorResponse {
+    pub fn with_state(self, state: String) -> ErrorResponse {
+        ErrorResponse {
+            error: self.error,
+            error_description: self.error_description,
+            error_uri: self.error_uri,
+            state: Some(state),
+        }
+    }
+}
+
+impl<'a> From<&'a ErrorKind> for ErrorResponse {
+    fn from(kind: &'a ErrorKind) -> ErrorResponse {
+        let (error, error_description, error_uri): (
+            &'static str,
+            Option<String>,
+            Option<String>,
+        ) = match kind {
+            ErrorKind::Msg(msg) => ("server_error", Some(msg.clone()), None),
+            ErrorKind::InvalidRequest(desc, uri) => ("invalid_request", desc.clone(), uri.clone()),
+            ErrorKind::InvalidClient(desc, uri) => ("invalid_client", desc.clone(), uri.clone()),
+            ErrorKind::InvalidGrant(desc, uri) => ("invalid_grant", desc.clone(), uri.clone()),
+            ErrorKind::UnauthorizedClient(desc, uri) => {
+                ("unauthorized_client", desc.clone(), uri.clone())
+            }
+            ErrorKind::UnsupportedGrantType(desc, uri) => {
+                ("unsupported_grant_type", desc.clone(), uri.clone())
+            }
+            ErrorKind::InvalidScope(desc, uri) => ("invalid_scope", desc.clone(), uri.clone()),
+            _ => (
+                "unknown_error",
+                Some("Failed to Recongize Given ErrorKind".to_string()),
+                None,
+            ),
+        };
+        ErrorResponse {
+            error,
+            error_description: error_description,
+            error_uri: error_uri,
+            state: None,
+        }
+    }
+}
+impl<'a> From<&'a Error> for ErrorResponse {
+    fn from(e: &'a Error) -> ErrorResponse {
+        e.kind().into()
+    }
+}
+
+impl<'a, T> From<&'a T> for ErrorResponse
+where
+    T: 'a + Into<ErrorResponse>,
+{
+    fn from(v: &'a T) -> ErrorResponse {
+        v.into()
+    }
+}
+
+impl IntoIterator for ErrorResponse {
+    type Item = (&'static str, String);
+    type IntoIter = ::std::vec::IntoIter<(&'static str, String)>;
+
+    fn into_iter(self) -> Self::IntoIter {
+        let mut out = vec![("error", self.error.into())];
+
+        match self.error_description {
+            Some(desc) => out.push(("error_description", desc)),
+            None => (),
+        };
+        match self.error_uri {
+            Some(uri) => out.push(("error_uri", uri)),
+            None => (),
+        };
+        match self.state {
+            Some(state) => out.push(("state", state)),
+            None => (),
+        };
+        out.into_iter()
+    }
 }

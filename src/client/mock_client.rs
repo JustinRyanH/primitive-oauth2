@@ -1,13 +1,14 @@
 use futures::future::err as FutErr;
 use futures::future::{Future, IntoFuture};
+use serde_json;
 use url::Url;
 
-use errors::{ErrorKind, Result};
-use client::params::UrlQueryParams;
 use client::OauthClient;
-use client::*;
-use client::storage::{MockMemoryStorage, MockStorageKey};
 use client::authenticator::BaseAuthenticator;
+use client::params::UrlQueryParams;
+use client::storage::{MockMemoryStorage, MockStorageKey};
+use client::*;
+use errors::Result;
 
 #[derive(Debug, PartialEq, Clone)]
 pub struct MockReq {
@@ -18,6 +19,16 @@ pub struct MockReq {
 impl MockReq {
     pub fn from_str<T: AsRef<str>>(s: T) -> Result<MockReq> {
         Ok(Url::parse(s.as_ref())?.into())
+    }
+
+    pub fn parse_error_req<'a, T>(url: &'static str, err: &'a T) -> Result<MockReq>
+    where
+        T: 'a + Into<ErrorResponse>,
+    {
+        Ok(MockReq::from(Url::parse_with_params(
+            url,
+            ErrorResponse::from(err).into_iter(),
+        )?))
     }
 }
 
@@ -42,48 +53,13 @@ pub struct MockResp {
 }
 
 impl MockResp {
-    fn json_from_optionals(
-        error_kind: &'static str,
-        description: &Option<String>,
-        uri: &Option<String>,
-    ) -> MockResp {
-        let mut out = String::from(error_kind);
-        if let &Some(ref desc) = description {
-            out.push_str(format!("\"error_description\": \"{}\"", desc).as_ref());
-        }
-        if let &Some(ref u) = uri {
-            out.push_str(format!("\"error_uri\": \"{}\"", u).as_ref());
-        }
-        MockResp {
-            body: format!("{{ {} }}", out),
-        }
-    }
-}
-
-impl<'a> From<&'a ErrorKind> for MockResp {
-    fn from(kind: &'a ErrorKind) -> MockResp {
-        match kind {
-            &ErrorKind::InvalidRequest(ref desc, ref uri) => {
-                MockResp::json_from_optionals("invalid_request", desc, uri)
-            }
-            &ErrorKind::UnauthorizedClient(ref desc, ref uri) => {
-                MockResp::json_from_optionals("unauthorized_client", desc, uri)
-            }
-            &ErrorKind::InvalidGrant(ref desc, ref uri) => {
-                MockResp::json_from_optionals("invalid_grant", desc, uri)
-            }
-            &ErrorKind::InvalidClient(ref desc, ref uri) => {
-                MockResp::json_from_optionals("invalid_client", desc, uri)
-            }
-            &ErrorKind::UnsupportedGrantType(ref desc, ref uri) => {
-                MockResp::json_from_optionals("unsupported_grant_type", desc, uri)
-            }
-            &ErrorKind::InvalidScope(ref desc, ref uri) => {
-                MockResp::json_from_optionals("invalid_scope", desc, uri)
-            }
-            _ => MockResp {
-                body: "Internal Server Error".to_string(),
-            },
+    pub fn parse_error_resp<'a, T>(err: &'a T) -> Result<MockResp>
+    where
+        T: 'a + Into<ErrorResponse>,
+    {
+        match serde_json::to_string::<ErrorResponse>(&ErrorResponse::from(err)) {
+            Ok(k) => Ok(k.into()),
+            Err(e) => Err(e.into()),
         }
     }
 }
