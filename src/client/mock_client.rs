@@ -8,7 +8,7 @@ use client::authenticator::BaseAuthenticator;
 use client::params::UrlQueryParams;
 use client::storage::{MockMemoryStorage, MockStorageKey};
 use client::*;
-use errors::Result;
+use errors::{Error, Result};
 
 #[derive(Debug, PartialEq, Clone)]
 pub struct MockReq {
@@ -17,18 +17,13 @@ pub struct MockReq {
 }
 
 impl MockReq {
+    // TODO: Repalce with FromStr trait
     pub fn from_str<T: AsRef<str>>(s: T) -> Result<MockReq> {
         Ok(Url::parse(s.as_ref())?.into())
     }
 
-    pub fn parse_error_req<'a, T>(url: &'static str, err: &'a T) -> Result<MockReq>
-    where
-        T: 'a + Into<ErrorResponse>,
-    {
-        Ok(MockReq::from(Url::parse_with_params(
-            url,
-            ErrorResponse::from(err).into_iter(),
-        )?))
+    pub fn parse_error_req(url: &'static str, err: &Error) -> Result<MockReq> {
+        Ok(Url::parse_with_params(url, ErrorResponse::from(err).into_iter())?.into())
     }
 }
 
@@ -53,10 +48,7 @@ pub struct MockResp {
 }
 
 impl MockResp {
-    pub fn parse_error_resp<'a, T>(err: &'a T) -> Result<MockResp>
-    where
-        T: 'a + Into<ErrorResponse>,
-    {
+    pub fn parse_error_resp(err: &Error) -> Result<MockResp> {
         match serde_json::to_string::<ErrorResponse>(&ErrorResponse::from(err)) {
             Ok(k) => Ok(k.into()),
             Err(e) => Err(e.into()),

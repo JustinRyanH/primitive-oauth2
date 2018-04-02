@@ -128,6 +128,7 @@ impl Error {
         ErrorKind::Msg(m.into()).into()
     }
 
+    #[inline]
     pub fn invalid_request<T: Into<String>>(desc: Option<T>, uri: Option<T>) -> Error {
         ErrorKind::InvalidRequest(desc.map(|v| v.into()), uri.map(|v| v.into())).into()
     }

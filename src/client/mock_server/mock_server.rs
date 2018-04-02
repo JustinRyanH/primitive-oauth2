@@ -1,9 +1,9 @@
 use url::Url;
 
-use errors::{Error, Result};
-use client::params::UrlQueryParams;
 use client::mock_client::{MockReq, MockResp};
 use client::mock_server::{ServerResp, VALID_SCOPES};
+use client::params::UrlQueryParams;
+use errors::{Error, Result};
 
 #[inline]
 pub fn validate_required_uri(url: String) -> Result<Option<Url>> {
@@ -132,7 +132,7 @@ impl MockServer {
                     return Err(Error::invalid_request(
                         Some("Bad Request: Missing `redirect_uri`"),
                         None,
-                    ))
+                    ));
                 }
                 false => Ok(None),
             },
