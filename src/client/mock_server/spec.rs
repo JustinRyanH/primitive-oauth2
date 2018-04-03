@@ -2,7 +2,7 @@ mod describe_mock_sever {
     use spectral::prelude::*;
     use url::Url;
 
-    use client::mock_client::MockReq;
+    use client::mock_client::{MockReq, MockResp};
     use client::mock_server::*;
     use errors::Error;
 
@@ -456,10 +456,25 @@ mod describe_mock_sever {
     }
 
     mod no_route {
+        use super::*;
+
+        fn request() -> MockReq {
+            MockReq {
+                url: Url::parse("https://example.net/").unwrap(),
+                body: "".to_string(),
+            }
+        }
+
         #[test]
-        #[should_panic]
         fn it_returns_404_response() {
-            unimplemented!()
+            let expected_resp: MockResp = "{\
+                                           \"error\":\"server_error\",\
+                                           \"error_description\":\"404: Route not found\"\
+                                           }"
+                .into();
+            assert_that(&server().send_request(request()).response())
+                .is_ok()
+                .is_equal_to(expected_resp);
         }
     }
 }

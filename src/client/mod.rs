@@ -124,8 +124,14 @@ pub struct AccessTokenResponse {
 #[derive(Debug, PartialEq, Clone, Serialize, Deserialize)]
 pub struct ErrorResponse {
     pub error: &'static str,
+
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub error_description: Option<String>,
+
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub error_uri: Option<String>,
+
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub state: Option<String>,
 }
 
@@ -176,7 +182,6 @@ impl<'a> From<&'a ErrorKind> for ErrorResponse {
 impl<'a> From<&'a Error> for ErrorResponse {
     #[inline]
     fn from(e: &'a Error) -> ErrorResponse {
-
         e.kind().into()
     }
 }
@@ -186,20 +191,20 @@ impl IntoIterator for ErrorResponse {
     type IntoIter = ::std::vec::IntoIter<(&'static str, String)>;
 
     fn into_iter(self) -> Self::IntoIter {
-         let mut out = vec![("error", self.error.into())];
+        let mut out = vec![("error", self.error.into())];
 
-         match self.error_description {
-             Some(desc) => out.push(("error_description", desc)),
-             None => (),
-         };
-         match self.error_uri {
-             Some(uri) => out.push(("error_uri", uri)),
-             None => (),
-         };
-         match self.state {
-             Some(state) => out.push(("state", state)),
-             None => (),
-         };
-         out.into_iter()
+        match self.error_description {
+            Some(desc) => out.push(("error_description", desc)),
+            None => (),
+        };
+        match self.error_uri {
+            Some(uri) => out.push(("error_uri", uri)),
+            None => (),
+        };
+        match self.state {
+            Some(state) => out.push(("state", state)),
+            None => (),
+        };
+        out.into_iter()
     }
 }
