@@ -1,5 +1,7 @@
 pub mod mock_server;
 pub mod server_resp;
+pub mod auth_route;
+
 #[cfg(test)]
 mod spec;
 
