@@ -54,6 +54,13 @@ impl MockResp {
             Err(e) => Err(e.into()),
         }
     }
+
+    pub fn parse_access_token_response(token: &AccessTokenResponse) -> Result<MockResp> {
+        match serde_json::to_string::<AccessTokenResponse>(token) {
+            Ok(k) => Ok(k.into()),
+            Err(e) => Err(e.into()),
+        }
+    }
 }
 
 impl<T> From<T> for MockResp

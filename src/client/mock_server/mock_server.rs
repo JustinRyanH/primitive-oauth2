@@ -1,5 +1,6 @@
 use url::Url;
 
+use client::AccessTokenResponse;
 use client::mock_client::{MockReq, MockResp};
 use client::mock_server::{ServerResp, VALID_SCOPES};
 use client::params::UrlQueryParams;
@@ -194,9 +195,7 @@ impl MockServer {
     }
 
     pub fn token(&self, _: MockReq) -> ServerResp {
-        Ok(MockResp::from(
-            "{\"access_token\":\"2YotnFZFEjr1zCsicMWpAA\"}",
-        )).into()
+        MockResp::parse_access_token_response(&AccessTokenResponse::new("2YotnFZFEjr1zCsicMWpAA", "bearer")).into()
     }
 
     pub fn send_request(&self, req: MockReq) -> ServerResp {

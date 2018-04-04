@@ -115,9 +115,27 @@ impl ValidReq {
 pub struct AccessTokenResponse {
     pub access_token: String,
     pub token_type: String,
+
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub expires_in: Option<usize>,
+
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub scope: Option<Vec<String>>,
+
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub state: Option<String>,
+}
+
+impl AccessTokenResponse {
+    pub fn new<T: Into<String>, S: Into<String>>(access_token: T, token_type: S) -> AccessTokenResponse {
+        AccessTokenResponse {
+            access_token: access_token.into(),
+            token_type: token_type.into(),
+            expires_in: None,
+            scope: None,
+            state: None,
+        }
+    }
 }
 
 /// [4.2.2.1.  Error Response](https://tools.ietf.org/html/rfc6749#section-4.2.2.1)
@@ -136,6 +154,7 @@ pub struct ErrorResponse {
 }
 
 impl ErrorResponse {
+    #[inline]
     pub fn with_state(self, state: String) -> ErrorResponse {
         ErrorResponse {
             error: self.error,
@@ -179,6 +198,7 @@ impl<'a> From<&'a ErrorKind> for ErrorResponse {
         }
     }
 }
+
 impl<'a> From<&'a Error> for ErrorResponse {
     #[inline]
     fn from(e: &'a Error) -> ErrorResponse {
@@ -190,6 +210,7 @@ impl IntoIterator for ErrorResponse {
     type Item = (&'static str, String);
     type IntoIter = ::std::vec::IntoIter<(&'static str, String)>;
 
+    #[inline]
     fn into_iter(self) -> Self::IntoIter {
         let mut out = vec![("error", self.error.into())];
 
