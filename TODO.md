@@ -18,8 +18,8 @@ Phase 2
 Phase 2.1 - Mock Server
 ----
 - [x] Create Mock Auth client to define a significant portion of the error vector
-- [ ] Remove the generic From Error into two Different FromError methods 
-- [ ] Implement Json Responses (SerDe)
+- [X] Remove the generic From Error into two Different FromError methods
+- [/] Implement Json Responses (SerDe)
 
 Phase 2.2 - The Big Clean Up
 ----
