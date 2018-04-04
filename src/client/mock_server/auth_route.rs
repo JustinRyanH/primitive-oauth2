@@ -59,29 +59,24 @@ pub fn parse_scope(url: &Url) -> Result<()> {
     Ok(())
 }
 
-pub fn auth(server: &MockServer, req: MockReq) -> ServerResp {
+pub fn auth_response(server: &MockServer, req: MockReq) -> ServerResp {
     if let Some(ref err) = server.error {
         return ServerResp::redirect_err(err);
+    };
+
+    match auth(server, req) {
+        Ok(k) => Ok(k).into(),
+        Err(e) => ServerResp::redirect_err(&e),
     }
-    let state = match parse_state(&req.url) {
-        Ok(k) => k,
-        Err(e) => return ServerResp::redirect_err(&e),
-    };
+}
 
-    match parse_client_id(&req.url) {
-        Ok(_) => (),
-        Err(e) => return ServerResp::redirect_err(&e),
-    };
+#[inline]
+pub fn auth(server: &MockServer, req: MockReq) -> Result<MockReq> {
+    let state = parse_state(&req.url)?;
 
-    match parse_redirect_uri(server, &req.url) {
-        Ok(_) => (),
-        Err(e) => return ServerResp::redirect_err(&e),
-    };
-
-    match parse_scope(&req.url) {
-        Ok(_) => (),
-        Err(e) => return ServerResp::redirect_err(&e),
-    };
+    parse_client_id(&req.url)?;
+    parse_redirect_uri(server, &req.url)?;
+    parse_scope(&req.url)?;
 
     Ok(MockReq {
         url: Url::parse_with_params(
