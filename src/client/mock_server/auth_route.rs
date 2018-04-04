@@ -1,13 +1,11 @@
 use url::Url;
 
 use client::mock_client::MockReq;
-use client::mock_server::{ServerResp,
+use client::mock_server::{MockServer, ServerResp,
                           mock_server::{maybe_single_param, single_param, validate_required_uri},
                           VALID_SCOPES};
 use client::params::UrlQueryParams;
 use errors::{Error, Result};
-
-use client::mock_server::MockServer;
 
 pub fn parse_state(url: &Url) -> Result<String> {
     single_param("state", url)

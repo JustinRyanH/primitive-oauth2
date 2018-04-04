@@ -2,8 +2,7 @@ use url::Url;
 
 use client::TokenResponse;
 use client::mock_client::{MockReq, MockResp};
-use client::mock_server::ServerResp;
-use client::mock_server::auth_route::auth;
+use client::mock_server::{ServerResp, auth_route::auth, token_route::token};
 use client::params::UrlQueryParams;
 use errors::{Error, Result};
 
@@ -120,7 +119,7 @@ impl MockServer {
     pub fn send_request(&self, req: MockReq) -> ServerResp {
         match req.url.path() {
             "/auth" => auth(self, req),
-            "/token" => self.token(req),
+            "/token" => token(self, req),
             _ => ServerResp::response_err(&Error::msg("404: Route not found")),
         }
     }
