@@ -112,7 +112,7 @@ impl ValidReq {
 
 /// [4.2.2.  Access Token Response](https://tools.ietf.org/html/rfc6749#section-4.2.2)
 #[derive(Debug, PartialEq, Clone, Serialize, Deserialize)]
-pub struct AccessTokenResponse {
+pub struct TokenResponse {
     pub access_token: String,
     pub token_type: String,
 
@@ -126,9 +126,9 @@ pub struct AccessTokenResponse {
     pub state: Option<String>,
 }
 
-impl AccessTokenResponse {
-    pub fn new<T: Into<String>, S: Into<String>>(access_token: T, token_type: S) -> AccessTokenResponse {
-        AccessTokenResponse {
+impl TokenResponse {
+    pub fn new<T: Into<String>, S: Into<String>>(access_token: T, token_type: S) -> TokenResponse {
+        TokenResponse {
             access_token: access_token.into(),
             token_type: token_type.into(),
             expires_in: None,

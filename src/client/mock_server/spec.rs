@@ -2,7 +2,7 @@ mod describe_mock_sever {
     use spectral::prelude::*;
     use url::Url;
 
-    use client::AccessTokenResponse;
+    use client::TokenResponse;
     use client::mock_client::{MockReq, MockResp};
     use client::mock_server::*;
     use errors::Error;
@@ -36,7 +36,7 @@ mod describe_mock_sever {
 
             #[test]
             fn returns_a_response() {
-                let expected_resp = MockResp::parse_access_token_response(&AccessTokenResponse::new("2YotnFZFEjr1zCsicMWpAA", "bearer")).unwrap();
+                let expected_resp = MockResp::parse_access_token_response(&TokenResponse::new("2YotnFZFEjr1zCsicMWpAA", "bearer")).unwrap();
 
                 assert_that(&server().send_request(request()).response()).is_ok().is_equal_to(expected_resp);
             }
