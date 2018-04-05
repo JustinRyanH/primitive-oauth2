@@ -36,21 +36,49 @@ mod describe_mock_sever {
 
             #[test]
             fn returns_a_response() {
-                let expected_resp = MockResp::parse_access_token_response(&TokenResponse::new("2YotnFZFEjr1zCsicMWpAA", "bearer")).unwrap();
+                let expected_resp = MockResp::parse_access_token_response(&TokenResponse::new(
+                    "2YotnFZFEjr1zCsicMWpAA",
+                    "bearer",
+                )).unwrap();
 
-                assert_that(&server().send_request(request()).response()).is_ok().is_equal_to(expected_resp);
+                assert_that(&server().send_request(request()).response())
+                    .is_ok()
+                    .is_equal_to(expected_resp);
             }
         }
 
-        mod response_type {}
+        mod errors {
+            use super::*;
 
-        mod client_id {}
+            fn params() -> Vec<(&'static str, &'static str)> {
+                vec![
+                    ("response_type", "token"),
+                    ("client_id", "someid@example.com"),
+                    ("client_secret", "MOCK_SECRET"),
+                    ("redirect_uri", "https://localhost:8080/oauth/example"),
+                    ("state", "MOCK_STATE"),
+                ]
+            }
 
-        mod client_secret {}
+            fn request() -> MockReq {
+                MockReq {
+                    url: Url::parse_with_params("https://example.net/token", params()).unwrap(),
+                    body: "".to_string(),
+                }
+            }
 
-        mod redirect_uri {}
+            #[test]
+            fn returns_a_response_error() {
+                let expected_resp = MockResp::parse_error_resp(&"Server Error".into()).unwrap();
 
-        mod state {}
+                assert_that(&server()
+                    .with_error("Server Error")
+                    .send_request(request())
+                    .response())
+                    .is_ok()
+                    .is_equal_to(expected_resp);
+            }
+        }
     }
 
     /// Used Simulate the [4.1.1.  Authorization Request](https://tools.ietf.org/html/rfc6749#section-4.1.1)
