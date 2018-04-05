@@ -9,25 +9,44 @@ Phase 1
 
 Phase 2
 ----
-- [/] Create an Ext Oauth2 Client that is Future, and 
+- [ ] Create an Ext Oauth2 Client that is Future, and 
   one with regular result
 - [ ] MockClient without state
-- [X] MockServer can create each of the potential error responses for Redirect
-- [X] MockServer can return a token
+- [ ] Time Down Mock Server specs to only be various happy cases and one manual error case
 
 Phase 2.1 - Mock Server
 ----
 - [x] Create Mock Auth client to define a significant portion of the error vector
 - [X] Remove the generic From Error into two Different FromError methods
-- [/] Implement Json Responses (SerDe)
+- [X] Implement Json Responses (SerDe)
+
+Phase 2.1.1 - Mock Server Response Token Options
+----
+- [ ] Implement Mock Server with Scope
+- [ ] Implement Mock Server with State
+- [ ] Implement Mock Server with Token Timeout
+
+Phase 2.1.2 - Mock Client - [Code Grant](https://tools.ietf.org/html/rfc6749#section-4.1)
+---
+- [ ] 4.1.2 Make Auth Request
+- [ ] 4.1.2 Handle Auth Response
+  - [ ]  4.1.2.0 Happy
+  - [ ]  4.1.2.1 Error
+- [ ] 4.1.3 Make Access Token Request
+- [ ] 4.1.4 Handle Access Token Response
+
+
+Phase 2.1.3 - Mock Client - [Implicit Grant](https://tools.ietf.org/html/rfc6749#section-4.2)
+---
+- [ ] 4.2.2 Make Auth Request
+- [ ] 4.2.2 Handle Access Token Response
+
+Phase 2.1.X - Server Auth Response Type (Implicit) [3.1.1.  Response Type](https://tools.ietf.org/html/rfc6749#section-3.1.1)
+--- 
 
 Phase 2.2 - The Big Clean Up
 ----
 - [X] Drop Rspec in favor of layers of modules
-- [ ] Streamline the Authenticator
-- [ ] Streamline the Authenticator Specs
-- [ ] Streamline Mock Client
-- [ ] Streamline Mock Client Spec
 - [ ] Rename MockStorage into MemoryStory
 - [ ] Create NullStorage
 

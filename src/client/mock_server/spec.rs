@@ -45,6 +45,10 @@ mod describe_mock_sever {
                     .is_ok()
                     .is_equal_to(expected_resp);
             }
+
+            mod server_with_state {}
+            mod server_with_scope {}
+            mod server_with_ttl {}
         }
 
         mod errors {
