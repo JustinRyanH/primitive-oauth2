@@ -62,12 +62,8 @@ pub fn parse_scope(url: &Url) -> Result<()> {
 pub fn auth_response(server: &MockServer, req: MockReq) -> ServerResp {
     if let Some(ref err) = server.error {
         return ServerResp::redirect_err(err);
-    };
-
-    match auth(server, &req) {
-        Ok(k) => Ok(k).into(),
-        Err(e) => ServerResp::redirect_err(&e),
     }
+    ServerResp::Redirect(auth(server, &req))
 }
 
 #[inline]
