@@ -1,13 +1,16 @@
+#[cfg(test)]
+mod spec;
+
 use std::collections::HashMap;
-use std::sync::{Arc, RwLock};
 use std::ops::Deref;
+use std::sync::{Arc, RwLock};
 
-use futures::future::{err as FutErr, ok as FutOk};
 use futures::IntoFuture;
+use futures::future::{err as FutErr, ok as FutOk};
 
-use errors::{Error, Result};
-use client::{AsyncPacker, ClientStorage, FutResult};
 use client::mock_client::MockClient;
+use client::{AsyncPacker, ClientStorage, FutResult};
+use errors::{Error, Result};
 
 #[derive(Debug, Clone)]
 pub struct MockMemoryStorage(pub Arc<RwLock<HashMap<MockStorageKey, MockClient>>>);
