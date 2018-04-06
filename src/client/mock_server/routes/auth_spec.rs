@@ -1,7 +1,7 @@
 use spectral::prelude::*;
 use url::Url;
 
-use super::auth::auth as auth_route;
+use super::auth::{auth as auth_route, auth_response};
 use client::mock_client::MockReq;
 use client::mock_server::*;
 use errors::Error;
@@ -52,18 +52,16 @@ mod with_error {
     }
 
     fn server() -> MockServer {
-        MockServer::new().with_error(Error::invalid_request(
-            None,
-            Some("https://doc.example.net/invalid_request"),
-        ))
+        MockServer::new().with_error(Error::msg("Server Error"))
     }
 
     #[test]
     fn returns_a_redirect_with_error() {
-        let expected_err = Error::invalid_request(Some("Bad Request: Missing `state`"), None);
-        assert_that(&auth_route(&server(), &request(params())))
-            .is_err()
-            .is_equal_to(expected_err);
+        let expected_req =
+            MockReq::parse_error_req("https://example.com", &Error::msg("Server Error")).unwrap();
+        assert_that(&auth_response(&server(), request(params())).redirect())
+            .is_ok()
+            .is_equal_to(expected_req);
     }
 }
 
