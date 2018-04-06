@@ -64,14 +64,14 @@ pub fn auth_response(server: &MockServer, req: MockReq) -> ServerResp {
         return ServerResp::redirect_err(err);
     };
 
-    match auth(server, req) {
+    match auth(server, &req) {
         Ok(k) => Ok(k).into(),
         Err(e) => ServerResp::redirect_err(&e),
     }
 }
 
 #[inline]
-pub fn auth(server: &MockServer, req: MockReq) -> Result<MockReq> {
+pub fn auth(server: &MockServer, req: &MockReq) -> Result<MockReq> {
     let state = parse_state(&req.url)?;
 
     parse_client_id(&req.url)?;
