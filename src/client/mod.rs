@@ -136,6 +136,36 @@ impl TokenResponse {
             state: None,
         }
     }
+
+    pub fn with_state<T: Into<String>>(self, state: T) -> TokenResponse {
+        TokenResponse {
+            access_token: self.access_token,
+            token_type: self.token_type,
+            expires_in: self.expires_in,
+            scope: self.scope,
+            state: Some(state.into()),
+        }
+    }
+
+    pub fn with_scope<T: Into<String>>(self, scope: Vec<T>) -> TokenResponse {
+        TokenResponse {
+            access_token: self.access_token,
+            token_type: self.token_type,
+            expires_in: self.expires_in,
+            scope: Some(scope.into_iter().map(|v| v.into()).collect()),
+            state: self.state,
+        }
+    }
+
+    pub fn with_expiration(self, expiration: usize) -> TokenResponse {
+        TokenResponse {
+            access_token: self.access_token,
+            token_type: self.token_type,
+            expires_in: Some(expiration),
+            scope: self.scope,
+            state: self.state,
+        }
+    }
 }
 
 /// [4.2.2.1.  Error Response](https://tools.ietf.org/html/rfc6749#section-4.2.2.1)
