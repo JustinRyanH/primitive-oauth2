@@ -1,6 +1,9 @@
+#[cfg(test)]
+mod spec;
+
+use std::collections::HashMap;
 use std::iter::FromIterator;
 use std::ops::Deref;
-use std::collections::HashMap;
 
 use url;
 

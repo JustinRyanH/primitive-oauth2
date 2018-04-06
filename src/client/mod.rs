@@ -9,8 +9,6 @@ pub mod storage;
 pub mod authenticator_spec;
 #[cfg(test)]
 pub mod mock_client_spec;
-#[cfg(test)]
-pub mod params_spec;
 
 use errors::{Error, ErrorKind, Result};
 use futures::future::Future;
