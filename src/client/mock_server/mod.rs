@@ -1,7 +1,6 @@
-pub mod auth_route;
 pub mod mock_server;
+pub mod routes;
 pub mod server_resp;
-pub mod token_route;
 
 #[cfg(test)]
 mod spec;
