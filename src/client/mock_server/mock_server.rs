@@ -1,7 +1,6 @@
 use url::Url;
 
-use client::TokenResponse;
-use client::mock_client::{MockReq, MockResp};
+use client::mock_client::MockReq;
 use client::mock_server::ServerResp;
 use client::mock_server::routes::{auth_route, token_route};
 use client::params::UrlQueryParams;
@@ -45,11 +44,31 @@ pub fn single_param(name: &'static str, url: &Url) -> Result<String> {
 }
 
 #[derive(Debug, PartialEq)]
+pub struct TokenOps {
+    pub expiration: Option<usize>,
+}
+
+impl TokenOps {
+    pub fn with_expiration(self, expiration: usize) -> TokenOps {
+        TokenOps {
+            expiration: Some(expiration),
+        }
+    }
+}
+
+impl Default for TokenOps {
+    fn default() -> TokenOps {
+        TokenOps { expiration: None }
+    }
+}
+
+#[derive(Debug, PartialEq)]
 pub struct MockServer {
     pub error: Option<Error>,
     pub redirect_uri_required: bool,
     pub code: &'static str,
     pub last_state: Option<&'static str>,
+    pub token_ops: TokenOps,
 }
 
 impl MockServer {
@@ -59,6 +78,7 @@ impl MockServer {
             redirect_uri_required: false,
             code: "",
             last_state: None,
+            token_ops: TokenOps::default(),
         }
     }
 
@@ -71,6 +91,7 @@ impl MockServer {
             code: self.code,
             redirect_uri_required: self.redirect_uri_required,
             last_state: self.last_state,
+            token_ops: self.token_ops,
         }
     }
 
@@ -80,6 +101,7 @@ impl MockServer {
             code: self.code,
             redirect_uri_required: true,
             last_state: self.last_state,
+            token_ops: self.token_ops,
         }
     }
 
@@ -89,6 +111,7 @@ impl MockServer {
             code: code,
             redirect_uri_required: self.redirect_uri_required,
             last_state: self.last_state,
+            token_ops: self.token_ops,
         }
     }
 
@@ -98,6 +121,7 @@ impl MockServer {
             code: self.code,
             redirect_uri_required: self.redirect_uri_required,
             last_state: Some(state),
+            token_ops: self.token_ops,
         }
     }
 
@@ -107,14 +131,18 @@ impl MockServer {
             code: self.code,
             redirect_uri_required: self.redirect_uri_required,
             last_state: None,
+            token_ops: self.token_ops,
         }
     }
 
-    pub fn token(&self, _: MockReq) -> ServerResp {
-        MockResp::parse_access_token_response(&TokenResponse::new(
-            "2YotnFZFEjr1zCsicMWpAA",
-            "bearer",
-        )).into()
+    pub fn with_expiration(self, expiration: usize) -> MockServer {
+        MockServer {
+            error: self.error,
+            code: self.code,
+            redirect_uri_required: self.redirect_uri_required,
+            last_state: self.last_state,
+            token_ops: self.token_ops.with_expiration(expiration),
+        }
     }
 
     pub fn send_request(&self, req: MockReq) -> ServerResp {

@@ -1,12 +1,11 @@
 use spectral::prelude::*;
 use url::Url;
 
+use super::token::{token as token_route, token_response, MOCK_TOKEN};
 use client::TokenResponse;
 use client::mock_client::{MockReq, MockResp};
 use client::mock_server::*;
 use errors::Error;
-
-use super::token::{token as token_route, token_response};
 
 fn server() -> MockServer {
     MockServer::new()
@@ -34,10 +33,9 @@ mod happy_case {
 
     #[test]
     fn returns_a_response() {
-        let expected_resp = MockResp::parse_access_token_response(&TokenResponse::new(
-            "2YotnFZFEjr1zCsicMWpAA",
-            "bearer",
-        )).unwrap();
+        let expected_resp =
+            MockResp::parse_access_token_response(&TokenResponse::new(MOCK_TOKEN, "bearer"))
+                .unwrap();
 
         assert_that(&token_route(&server(), &request(params())))
             .is_ok()
@@ -46,7 +44,27 @@ mod happy_case {
 
     mod server_with_state {}
     mod server_with_scope {}
-    mod server_with_ttl {}
+    mod server_with_ttl {
+        use super::*;
+
+        fn server() -> MockServer {
+            MockServer::new().with_expiration(3600)
+        }
+
+        #[test]
+        fn returns_a_response() {
+            let expected_resp = MockResp::parse_access_token_response(&TokenResponse::new(
+                MOCK_TOKEN,
+                "bearer",
+            ).with_expiration(3600))
+                .unwrap();
+
+            assert_that(&token_route(&server(), &request(params())))
+                .is_ok()
+                .is_equal_to(expected_resp);
+        }
+
+    }
 }
 
 mod errors {

@@ -3,6 +3,8 @@ use errors::Result;
 use client::mock_server::{MockServer, ServerResp};
 use client::{TokenResponse, mock_client::{MockReq, MockResp}};
 
+pub static MOCK_TOKEN: &'static str = "TU9DS19UT0tFTg==";
+
 #[inline]
 pub fn token_response(server: &MockServer, req: MockReq) -> ServerResp {
     if let Some(ref err) = server.error {
@@ -12,6 +14,12 @@ pub fn token_response(server: &MockServer, req: MockReq) -> ServerResp {
 }
 
 #[inline]
-pub fn token(_: &MockServer, _: &MockReq) -> Result<MockResp> {
-    MockResp::parse_access_token_response(&TokenResponse::new("2YotnFZFEjr1zCsicMWpAA", "bearer"))
+pub fn token(server: &MockServer, _: &MockReq) -> Result<MockResp> {
+    let mut token_resp = TokenResponse::new(MOCK_TOKEN, "bearer");
+
+    if let Some(expiration) = server.token_ops.expiration {
+        token_resp = token_resp.with_expiration(expiration);
+    }
+
+    MockResp::parse_access_token_response(&token_resp)
 }
