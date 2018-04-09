@@ -46,19 +46,31 @@ pub fn single_param(name: &'static str, url: &Url) -> Result<String> {
 #[derive(Debug, PartialEq)]
 pub struct TokenOps {
     pub expiration: Option<usize>,
+    pub scope: Vec<String>,
 }
 
 impl TokenOps {
     pub fn with_expiration(self, expiration: usize) -> TokenOps {
         TokenOps {
             expiration: Some(expiration),
+            scope: self.scope,
+        }
+    }
+
+    pub fn with_scope(self, scope: Vec<String>) -> TokenOps {
+        TokenOps {
+            expiration: self.expiration,
+            scope,
         }
     }
 }
 
 impl Default for TokenOps {
     fn default() -> TokenOps {
-        TokenOps { expiration: None }
+        TokenOps {
+            expiration: None,
+            scope: vec![],
+        }
     }
 }
 
@@ -102,6 +114,17 @@ impl MockServer {
             redirect_uri_required: true,
             last_state: self.last_state,
             token_ops: self.token_ops,
+        }
+    }
+
+    pub fn with_scope<T: Into<String>>(self, scope: Vec<T>) -> MockServer {
+        MockServer {
+            error: self.error,
+            code: self.code,
+            redirect_uri_required: self.redirect_uri_required,
+            last_state: self.last_state,
+            token_ops: self.token_ops
+                .with_scope(scope.into_iter().map(|v| v.into()).collect()),
         }
     }
 

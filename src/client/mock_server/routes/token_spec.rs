@@ -22,13 +22,7 @@ mod happy_case {
     use super::*;
 
     fn params() -> Vec<(&'static str, &'static str)> {
-        vec![
-            ("response_type", "token"),
-            ("client_id", "someid@example.com"),
-            ("client_secret", "MOCK_SECRET"),
-            ("redirect_uri", "https://localhost:8080/oauth/example"),
-            ("state", "MOCK_STATE"),
-        ]
+        vec![("code", "MOCK_CODE"), ("state", "MOCK_STATE")]
     }
 
     #[test]
@@ -42,8 +36,26 @@ mod happy_case {
             .is_equal_to(expected_resp);
     }
 
-    mod server_with_state {}
-    mod server_with_scope {}
+    mod server_with_scope {
+        use super::*;
+
+        fn server() -> MockServer {
+            MockServer::new().with_scope(vec!["user.foo", "user.profile"])
+        }
+
+        #[test]
+        fn returns_a_response() {
+            let expected_resp =
+                MockResp::parse_access_token_response(&TokenResponse::new(MOCK_TOKEN, "bearer")
+                    .with_scope(&vec!["user.foo", "user.profile"]))
+                    .unwrap();
+
+            assert_that(&token_route(&server(), &request(params())))
+                .is_ok()
+                .is_equal_to(expected_resp);
+        }
+
+    }
     mod server_with_ttl {
         use super::*;
 

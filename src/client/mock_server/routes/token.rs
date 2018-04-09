@@ -21,5 +21,9 @@ pub fn token(server: &MockServer, _: &MockReq) -> Result<MockResp> {
         token_resp = token_resp.with_expiration(expiration);
     }
 
+    if !server.token_ops.scope.is_empty() {
+        token_resp = token_resp.with_scope(&server.token_ops.scope);
+    }
+
     MockResp::parse_access_token_response(&token_resp)
 }

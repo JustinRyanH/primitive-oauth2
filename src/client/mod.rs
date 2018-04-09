@@ -143,12 +143,12 @@ impl TokenResponse {
         }
     }
 
-    pub fn with_scope<T: Into<String>>(self, scope: Vec<T>) -> TokenResponse {
+    pub fn with_scope<T: Clone + Into<String>>(self, scope: &Vec<T>) -> TokenResponse {
         TokenResponse {
             access_token: self.access_token,
             token_type: self.token_type,
             expires_in: self.expires_in,
-            scope: Some(scope.into_iter().map(|v| v.into()).collect()),
+            scope: Some(scope.into_iter().map(|v| v.clone().into()).collect()),
             state: self.state,
         }
     }

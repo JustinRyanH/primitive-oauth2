@@ -57,3 +57,8 @@ Phase 3
 - [ ] Use Implement a Actix Web with Generic Client
 - [ ] Generic Client allows allows to specify extra options
 - [ ] Move Mock Client to use Generic Client
+
+Side Tasks
+---
+- [ ] Drop `error_chain`, it's getting gross
+- [ ] Replace all instances of String with `Cow<'a, str>`
