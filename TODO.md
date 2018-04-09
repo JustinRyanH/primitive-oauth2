@@ -9,8 +9,7 @@ Phase 1
 
 Phase 2
 ----
-- [ ] Create an Ext Oauth2 Client that is Future, and 
-  one with regular result
+- [ ] Revert Oauth2 Client from FutureRes
 - [ ] MockClient without state
 - [ ] Time Down Mock Server specs to only be various happy cases and one manual error case
 
@@ -22,9 +21,8 @@ Phase 2.1 - Mock Server
 
 Phase 2.1.1 - Mock Server Response Token Options
 ----
-- [ ] Implement Mock Server with Scope
-- [ ] Implement Mock Server with State
-- [ ] Implement Mock Server with Token Timeout
+- [X] Implement Mock Server with Scope
+- [X] Implement Mock Server with Token Timeout
 
 Phase 2.1.2 - Mock Client - [Code Grant](https://tools.ietf.org/html/rfc6749#section-4.1)
 ---
