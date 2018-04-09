@@ -1,12 +1,9 @@
 use url::Url;
 
+use super::parse_state;
 use client::mock_client::MockReq;
-use client::mock_server::{MockServer, ServerResp, mock_server::single_param};
+use client::mock_server::{MockServer, ServerResp};
 use errors::Result;
-
-pub fn parse_state(url: &Url) -> Result<String> {
-    single_param("state", url)
-}
 
 pub fn auth_response(server: &MockServer, req: MockReq) -> ServerResp {
     if let Some(ref err) = server.error {

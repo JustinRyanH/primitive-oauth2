@@ -77,6 +77,8 @@ mod happy_case {
         }
 
     }
+    mod server_with_state {
+    }
 }
 
 mod errors {

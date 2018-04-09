@@ -14,7 +14,7 @@ pub fn token_response(server: &MockServer, req: MockReq) -> ServerResp {
 }
 
 #[inline]
-pub fn token(server: &MockServer, _: &MockReq) -> Result<MockResp> {
+pub fn token(server: &MockServer, _req: &MockReq) -> Result<MockResp> {
     let mut token_resp = TokenResponse::new(MOCK_TOKEN, "bearer");
 
     if let Some(expiration) = server.token_ops.expiration {
