@@ -23,9 +23,9 @@ Phase 2.1.1 - Mock Server Response Token Options
 ----
 - [X] Implement Mock Server with Scope
 - [X] Implement Mock Server with Token Timeout
-- [ ] Implement Mock Server with State 
-  - [ ] When state in Request
-  - [ ] When state not in Request
+- [x] Implement Mock Server with State
+  - [x] When state in Request
+  - [x] When state not in Request
 
 Phase 2.1.2 - Mock Client - [Code Grant](https://tools.ietf.org/html/rfc6749#section-4.1)
 ---
