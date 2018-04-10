@@ -35,6 +35,7 @@ Phase 2.1.2 - Mock Client - [Code Grant](https://tools.ietf.org/html/rfc6749#sec
   - [ ]  4.1.2.1 Error
 - [ ] 4.1.3 Make Access Token Request
 - [ ] 4.1.4 Handle Access Token Response
+  - [ ] Handle Happy Response with Params
 
 
 Phase 2.1.3 - Mock Client - [Implicit Grant](https://tools.ietf.org/html/rfc6749#section-4.2)
