@@ -1,47 +1,7 @@
-use url::Url;
-
 use client::mock_client::MockReq;
 use client::mock_server::ServerResp;
 use client::mock_server::routes::{auth_route, token_route};
-use client::params::UrlQueryParams;
-use errors::{Error, Result};
-
-#[inline]
-pub fn validate_required_uri(url: String) -> Result<Option<Url>> {
-    if url.as_str() != "https://localhost:8080/oauth/example" {
-        return Err(Error::invalid_request(
-            Some("Bad Request: Redirect Uri does not match valid uri"),
-            None,
-        ));
-    }
-    match Url::parse(url.as_ref()) {
-        Ok(u) => Ok(Some(u)),
-        Err(e) => Err(e.into()),
-    }
-}
-
-#[inline]
-pub fn maybe_single_param(name: &'static str, url: &Url) -> Option<String> {
-    match UrlQueryParams::from(url.query_pairs()).get(name) {
-        Some(v) => v.single().map(|v| v.clone()),
-        None => None,
-    }
-}
-
-#[inline]
-pub fn single_param(name: &'static str, url: &Url) -> Result<String> {
-    match UrlQueryParams::from(url.query_pairs()).get(name) {
-        Some(v) => Ok(v.single()
-            .ok_or(Error::msg(
-                "Bad Request: Expected Single Parameter, found many",
-            ))?
-            .clone()),
-        None => Err(Error::invalid_request(
-            Some(format!("Bad Request: Missing `{}`", name)),
-            None,
-        )),
-    }
-}
+use errors::Error;
 
 #[derive(Debug, PartialEq)]
 pub struct TokenOps {
