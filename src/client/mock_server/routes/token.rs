@@ -1,7 +1,8 @@
 use errors::Result;
 
+use client::mock_client::MockReq;
 use client::mock_server::{MockServer, ServerResp, routes::parse_state};
-use client::{TokenResponse, mock_client::{MockReq, MockResp}};
+use client::responses::{MockResp, TokenResponse};
 
 pub static MOCK_TOKEN: &'static str = "TU9DS19UT0tFTg==";
 

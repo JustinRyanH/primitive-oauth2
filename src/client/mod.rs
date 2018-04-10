@@ -8,10 +8,11 @@ pub mod storage;
 
 #[cfg(test)]
 pub mod authenticator_spec;
-// #[cfg(test)]
-// pub mod mock_client_spec;
+#[cfg(test)]
+pub mod mock_client_spec;
 
-pub use self::responses::{ErrorResponse, TokenResponse};
+pub use self::mock_client::MockReq;
+pub use self::responses::{ErrorResponse, MockResp, TokenResponse};
 
 use errors::{Error, Result};
 use futures::future::Future;

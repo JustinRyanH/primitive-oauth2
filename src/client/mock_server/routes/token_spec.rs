@@ -2,9 +2,9 @@ use spectral::prelude::*;
 use url::Url;
 
 use super::token::{token as token_route, token_response, MOCK_TOKEN};
-use client::TokenResponse;
-use client::mock_client::{MockReq, MockResp};
 use client::mock_server::*;
+use client::{MockReq, MockResp, TokenResponse};
+
 use errors::Error;
 
 fn server() -> MockServer {
