@@ -1,4 +1,4 @@
-use client::mock_client::MockReq;
+use client::MockReq;
 use client::mock_server::ServerResp;
 use client::mock_server::routes::{auth_route, token_route};
 use errors::Error;

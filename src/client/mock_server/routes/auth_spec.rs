@@ -2,7 +2,7 @@ use spectral::prelude::*;
 use url::Url;
 
 use super::auth::{auth as auth_route, auth_response};
-use client::mock_client::MockReq;
+use client::MockReq;
 use client::mock_server::*;
 use errors::Error;
 

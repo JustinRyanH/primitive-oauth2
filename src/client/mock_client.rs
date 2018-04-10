@@ -1,4 +1,3 @@
-use serde_json;
 use url::Url;
 
 use client::OauthClient;
@@ -37,36 +36,6 @@ impl From<Url> for MockReq {
 impl Into<UrlQueryParams> for MockReq {
     fn into(self) -> UrlQueryParams {
         UrlQueryParams::from(self.url)
-    }
-}
-
-#[derive(Debug, PartialEq, Clone)]
-pub struct MockResp {
-    pub body: String,
-}
-
-impl MockResp {
-    pub fn parse_error_resp(err: &Error) -> Result<MockResp> {
-        match serde_json::to_string::<ErrorResponse>(&ErrorResponse::from(err)) {
-            Ok(k) => Ok(k.into()),
-            Err(e) => Err(e.into()),
-        }
-    }
-
-    pub fn parse_access_token_response(token: &TokenResponse) -> Result<MockResp> {
-        match serde_json::to_string::<TokenResponse>(token) {
-            Ok(k) => Ok(k.into()),
-            Err(e) => Err(e.into()),
-        }
-    }
-}
-
-impl<T> From<T> for MockResp
-where
-    T: Into<String>,
-{
-    fn from(v: T) -> MockResp {
-        MockResp { body: v.into() }
     }
 }
 

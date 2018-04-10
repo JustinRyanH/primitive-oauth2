@@ -1,7 +1,7 @@
 use url::Url;
 
 use super::parse_state;
-use client::mock_client::MockReq;
+use client::MockReq;
 use client::mock_server::{MockServer, ServerResp};
 use errors::Result;
 

@@ -1,6 +1,6 @@
 use errors::Result;
 
-use client::mock_client::MockReq;
+use client::MockReq;
 use client::mock_server::{MockServer, ServerResp, routes::parse_state};
 use client::responses::{MockResp, TokenResponse};
 

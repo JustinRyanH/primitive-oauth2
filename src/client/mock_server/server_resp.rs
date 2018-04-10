@@ -1,4 +1,4 @@
-use client::mock_client::MockReq;
+use client::MockReq;
 use client::responses::MockResp;
 use errors::{Error, Result};
 
