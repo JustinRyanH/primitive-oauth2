@@ -30,12 +30,20 @@ Phase 2.1.1 - Mock Server Response Token Options
 Phase 2.1.2 - Mock Client - [Code Grant](https://tools.ietf.org/html/rfc6749#section-4.1)
 ---
 - [ ] 4.1.2 Make Auth Request
+  - [ ] With State
+    - [ ] Assert it stores in state
 - [ ] 4.1.2 Handle Auth Response
   - [ ]  4.1.2.0 Happy
   - [ ]  4.1.2.1 Error
+  - [ ] With State
+    - [ ] Assert it retrieves from Storage
+    - [ ] Assert it fails if not in Storage
+  - [ ] Without State
+    - [ ] Assert it makes new Client 
 - [ ] 4.1.3 Make Access Token Request
 - [ ] 4.1.4 Handle Access Token Response
   - [ ] Handle Happy Response with Params
+  - [ ] Assert it Storages in Storage
 
 
 Phase 2.1.3 - Mock Client - [Implicit Grant](https://tools.ietf.org/html/rfc6749#section-4.2)
@@ -50,6 +58,7 @@ Phase 2.2 - The Big Clean Up
 ----
 - [X] Drop Rspec in favor of layers of modules
 - [ ] Rename MockStorage into MemoryStory
+- [ ] Replace Mock Storage with a Struct that is just configured
 - [ ] Create NullStorage
 
 Phase 3
@@ -59,6 +68,25 @@ Phase 3
 - [ ] Use Implement a Actix Web with Generic Client
 - [ ] Generic Client allows allows to specify extra options
 - [ ] Move Mock Client to use Generic Client
+
+Phase 4
+---
+- [ ] Google Implementation
+- [ ] Facebook Implementation
+- [ ] Github Implementation
+- [ ] Slack Implementation
+- [ ] Auth0 Implementation
+- [ ] Okta Implementation
+
+Phase 5
+---
+- [ ] Hyper Implementation
+- [ ] Reqwest Implementation
+- [ ] Actix Web Implementation
+- [ ] Rocker.rs Implementation
+- [ ] Nickle Implementation
+- [ ] Tiny Http Implemention
+- [ ] Rustless Implementation
 
 Side Tasks
 ---
