@@ -1,3 +1,4 @@
+use futures::future::Future;
 use serde_json;
 use std::sync;
 use url;
@@ -187,3 +188,5 @@ impl PartialEq for ErrorKind {
         }
     }
 }
+
+pub type FutResult<T> = Box<Future<Item = T, Error = Error> + Send>;

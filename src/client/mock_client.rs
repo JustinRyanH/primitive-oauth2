@@ -1,5 +1,3 @@
-use futures::future::err as FutErr;
-use futures::future::{Future, IntoFuture};
 use serde_json;
 use url::Url;
 
@@ -115,7 +113,7 @@ impl OauthClient<MockMemoryStorage> for MockClient {
     type Request = MockReq;
     type Response = MockResp;
 
-    fn get_user_auth_request(&self, storage: &mut MockMemoryStorage) -> FutResult<MockReq> {
+    fn get_user_auth_request(&self, storage: &mut MockMemoryStorage) -> Result<MockReq> {
         let state = "EXAMPLE_STATE";
         let mock_req = match Url::parse_with_params(
             self.auth.get_auth_uri(),
@@ -132,33 +130,28 @@ impl OauthClient<MockMemoryStorage> for MockClient {
         storage
             .set(MockStorageKey::state(state), self.clone())
             .and_then(move |_| mock_req)
-            .pack()
     }
 
-    fn handle_auth_request(req: MockReq, storage: &mut MockMemoryStorage) -> FutResult<Self> {
+    fn handle_auth_redirect(req: MockReq, storage: &mut MockMemoryStorage) -> Result<Self> {
         let data = match ValidReq::from_url(&req.url) {
             Ok(d) => d,
-            Err(e) => return FutErr(e.into()).pack(),
+            Err(e) => return Err(e.into()),
         };
         let code = data.code.clone();
 
         match data.state {
             Some(state) => storage
                 .get(MockStorageKey::State(state))
-                .and_then(|c| Ok(c.with_code(code)))
-                .pack(),
-            None => MockClient::new()
-                .into_future()
-                .and_then(|c| Ok(c.with_code(code)))
-                .pack(),
+                .and_then(|c| Ok(c.with_code(code))),
+            None => MockClient::new().and_then(|c| Ok(c.with_code(code))),
         }
     }
 
-    fn get_access_token_request(&self) -> FutResult<MockReq> {
+    fn get_access_token_request(&self) -> Result<MockReq> {
         unimplemented!()
     }
 
-    fn handle_token_response(self, _: MockResp, _: &mut MockMemoryStorage) -> FutResult<Self> {
+    fn handle_token_response(self, _: MockResp, _: &mut MockMemoryStorage) -> Result<Self> {
         unimplemented!()
     }
 }

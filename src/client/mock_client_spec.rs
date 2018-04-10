@@ -1,23 +1,21 @@
 #[allow(unused_imports)]
-
 use std::iter::FromIterator;
 
 #[allow(unused_imports)]
 use futures::Future;
 use futures_cpupool::CpuPool;
 
-use client::storage::MockMemoryStorage;
-use client::params::{ParamValue, UrlQueryParams};
 use client::mock_client::*;
 use client::mock_server::*;
+use client::params::{ParamValue, UrlQueryParams};
+use client::storage::MockMemoryStorage;
 use errors::Result;
 
 mod given_mock_client {
+    use super::*;
     #[allow(unused_imports)]
-
     use client::OauthClient;
     use spectral::prelude::*;
-    use super::*;
 
     #[derive(Debug, Clone)]
     struct Env {
@@ -91,9 +89,9 @@ mod given_mock_client {
     mod handle_auth_request {
         use super::*;
 
+        use client::OauthClient;
         #[allow(unused_imports)]
         use client::mock_client::test_helpers::MockClientHelper;
-        use client::OauthClient;
 
         fn subject(server: MockServer) -> Result<MockClient> {
             let env = env();

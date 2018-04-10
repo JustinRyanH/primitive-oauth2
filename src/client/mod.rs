@@ -8,8 +8,8 @@ pub mod storage;
 
 #[cfg(test)]
 pub mod authenticator_spec;
-#[cfg(test)]
-pub mod mock_client_spec;
+// #[cfg(test)]
+// pub mod mock_client_spec;
 
 pub use self::responses::{ErrorResponse, TokenResponse};
 
@@ -47,8 +47,6 @@ where
     }
 }
 
-pub type FutResult<T> = Box<Future<Item = T, Error = Error> + Send>;
-
 /// The `OauthClient` trait allows to generate the key components for
 /// each of the [RFC 6749](https://tools.ietf.org/html/rfc6749) client side steps
 pub trait OauthClient<S>: Sized
@@ -60,16 +58,16 @@ where
     // TODO: Add Type Error
     /// Used to implement [4.1.1](https://tools.ietf.org/html/rfc6749#section-4.1.1) and
     /// [4.2.1](https://tools.ietf.org/html/rfc6749#section-4.2.1) Authorization Request
-    fn get_user_auth_request(&self, storage: &mut S) -> FutResult<Self::Request>;
+    fn get_user_auth_request(&self, storage: &mut S) -> Result<Self::Request>;
 
     /// Handles the [4.1.2](https://tools.ietf.org/html/rfc6749#section-4.1.2) Authorization Redirect Request
-    fn handle_auth_request(request: Self::Request, storage: &mut S) -> FutResult<Self>;
+    fn handle_auth_redirect(request: Self::Request, storage: &mut S) -> Result<Self>;
 
     /// Used to implement [4.1.3](https://tools.ietf.org/html/rfc6749#section-4.1.3) Token Request
-    fn get_access_token_request(&self) -> FutResult<Self::Request>;
+    fn get_access_token_request(&self) -> Result<Self::Request>;
 
     /// Handles the [4.1.4](https://tools.ietf.org/html/rfc6749#section-4.1.4) Token Response
-    fn handle_token_response(self, response: Self::Response, storage: &mut S) -> FutResult<Self>;
+    fn handle_token_response(self, response: Self::Response, storage: &mut S) -> Result<Self>;
 
     // Used to implement [4.6](https://tools.ietf.org/html/rfc6749#section-4.1.4) Token Refresh Reqeust
     // fn get_token_refresh_request(self, response: Self::Response) -> FutureResult<Self, Error>;
@@ -80,10 +78,10 @@ pub trait ClientStorage<C: Sized + OauthClient<Self>>: Sized {
     type Error;
     type Lookup;
 
-    fn set(&mut self, lookup: Self::Lookup, value: C) -> FutResult<Option<C>>;
-    fn get(&self, lookup: Self::Lookup) -> FutResult<C>;
-    fn drop(&mut self, lookup: Self::Lookup) -> FutResult<C>;
-    fn has(&self, lookup: Self::Lookup) -> FutResult<bool>;
+    fn set(&mut self, lookup: Self::Lookup, value: C) -> Result<Option<C>>;
+    fn get(&self, lookup: Self::Lookup) -> Result<C>;
+    fn drop(&mut self, lookup: Self::Lookup) -> Result<C>;
+    fn has(&self, lookup: Self::Lookup) -> Result<bool>;
 }
 
 struct ValidReq {

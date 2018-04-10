@@ -1,15 +1,12 @@
-#[cfg(test)]
-mod spec;
+// #[cfg(test)]
+// mod spec;
 
 use std::collections::HashMap;
 use std::ops::Deref;
 use std::sync::{Arc, RwLock};
 
-use futures::IntoFuture;
-use futures::future::{err as FutErr, ok as FutOk};
-
+use client::ClientStorage;
 use client::mock_client::MockClient;
-use client::{AsyncPacker, ClientStorage, FutResult};
 use errors::{Error, Result};
 
 #[derive(Debug, Clone)]
@@ -56,28 +53,27 @@ impl ClientStorage<MockClient> for MockMemoryStorage {
     type Error = Error;
     type Lookup = MockStorageKey;
 
-    fn set(&mut self, lookup: MockStorageKey, value: MockClient) -> FutResult<Option<MockClient>> {
+    fn set(&mut self, lookup: MockStorageKey, value: MockClient) -> Result<Option<MockClient>> {
         match self.0.write() {
-            Ok(ref mut hash) => FutOk(hash.insert(lookup, value)),
-            Err(e) => FutErr(e.into()),
-        }.pack()
+            Ok(ref mut hash) => Ok(hash.insert(lookup, value)),
+            Err(e) => Err(e.into()),
+        }
     }
 
-    fn get(&self, lookup: MockStorageKey) -> FutResult<MockClient> {
+    fn get(&self, lookup: MockStorageKey) -> Result<MockClient> {
         match self.0.read() {
             Ok(hash) => hash.get(&lookup)
                 .map(|c| c.clone())
-                .ok_or(Error::msg("No Client stored from the given lookup"))
-                .into_future(),
-            Err(e) => FutErr(e.into()),
-        }.pack()
+                .ok_or(Error::msg("No Client stored from the given lookup")),
+            Err(e) => Err(e.into()),
+        }
     }
 
-    fn drop(&mut self, _lookup: MockStorageKey) -> FutResult<MockClient> {
+    fn drop(&mut self, _lookup: MockStorageKey) -> Result<MockClient> {
         unimplemented!()
     }
 
-    fn has(&self, _lookup: MockStorageKey) -> FutResult<bool> {
+    fn has(&self, _lookup: MockStorageKey) -> Result<bool> {
         unimplemented!()
     }
 }
