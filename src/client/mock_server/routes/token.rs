@@ -1,6 +1,6 @@
 use errors::Result;
 
-use client::mock_server::{MockServer, ServerResp};
+use client::mock_server::{MockServer, ServerResp, routes::parse_state};
 use client::{TokenResponse, mock_client::{MockReq, MockResp}};
 
 pub static MOCK_TOKEN: &'static str = "TU9DS19UT0tFTg==";
@@ -14,7 +14,7 @@ pub fn token_response(server: &MockServer, req: MockReq) -> ServerResp {
 }
 
 #[inline]
-pub fn token(server: &MockServer, _req: &MockReq) -> Result<MockResp> {
+pub fn token(server: &MockServer, req: &MockReq) -> Result<MockResp> {
     let mut token_resp = TokenResponse::new(MOCK_TOKEN, "bearer");
 
     if let Some(expiration) = server.token_ops.expiration {
@@ -24,6 +24,11 @@ pub fn token(server: &MockServer, _req: &MockReq) -> Result<MockResp> {
     if !server.token_ops.scope.is_empty() {
         token_resp = token_resp.with_scope(&server.token_ops.scope);
     }
+
+    token_resp = match parse_state(&req.url) {
+        Ok(v) => token_resp.with_state(v),
+        Err(_) => token_resp,
+    };
 
     MockResp::parse_access_token_response(&token_resp)
 }

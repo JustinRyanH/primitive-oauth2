@@ -22,7 +22,11 @@ mod happy_case {
     use super::*;
 
     fn params() -> Vec<(&'static str, &'static str)> {
-        vec![("code", "MOCK_CODE"), ("state", "MOCK_STATE")]
+        vec![
+            ("code", "MOCK_CODE"),
+            ("grant_type", "authorization_code"),
+            ("client_id", ""),
+        ]
     }
 
     #[test]
@@ -78,6 +82,34 @@ mod happy_case {
 
     }
     mod server_with_state {
+        use super::*;
+
+        fn params() -> Vec<(&'static str, &'static str)> {
+            vec![
+                ("code", "MOCK_CODE"),
+                ("state", "MOCK_STATE"),
+                ("grant_type", "authorization_code"),
+                ("client_id", ""),
+            ]
+        }
+
+        fn server() -> MockServer {
+            MockServer::new().with_state("MOCK_STATE")
+        }
+
+        #[test]
+        fn returns_a_response() {
+            let expected_resp = MockResp::parse_access_token_response(&TokenResponse::new(
+                MOCK_TOKEN,
+                "bearer",
+            ).with_state(
+                "MOCK_STATE",
+            )).unwrap();
+
+            assert_that(&token_route(&server(), &request(params())))
+                .is_ok()
+                .is_equal_to(expected_resp);
+        }
     }
 }
 

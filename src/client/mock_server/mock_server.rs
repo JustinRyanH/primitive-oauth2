@@ -7,6 +7,7 @@ use errors::Error;
 pub struct TokenOps {
     pub expiration: Option<usize>,
     pub scope: Vec<String>,
+    pub state: Option<&'static str>,
 }
 
 impl TokenOps {
@@ -14,13 +15,31 @@ impl TokenOps {
         TokenOps {
             expiration: Some(expiration),
             scope: self.scope,
+            state: self.state,
         }
     }
 
     pub fn with_scope(self, scope: Vec<String>) -> TokenOps {
         TokenOps {
             expiration: self.expiration,
+            state: self.state,
             scope,
+        }
+    }
+
+    pub fn with_state(self, state: &'static str) -> TokenOps {
+        TokenOps {
+            expiration: self.expiration,
+            scope: self.scope,
+            state: Some(state),
+        }
+    }
+
+    pub fn with_no_state(self) -> TokenOps {
+        TokenOps {
+            expiration: self.expiration,
+            scope: self.scope,
+            state: None,
         }
     }
 }
@@ -30,6 +49,7 @@ impl Default for TokenOps {
         TokenOps {
             expiration: None,
             scope: vec![],
+            state: None,
         }
     }
 }
@@ -104,7 +124,7 @@ impl MockServer {
             code: self.code,
             redirect_uri_required: self.redirect_uri_required,
             last_state: Some(state),
-            token_ops: self.token_ops,
+            token_ops: self.token_ops.with_state(state),
         }
     }
 
@@ -114,7 +134,7 @@ impl MockServer {
             code: self.code,
             redirect_uri_required: self.redirect_uri_required,
             last_state: None,
-            token_ops: self.token_ops,
+            token_ops: self.token_ops.with_no_state(),
         }
     }
 
