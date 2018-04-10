@@ -1,9 +1,8 @@
 use spectral::prelude::*;
 use url::Url;
 
-use client::MockReq;
-use client::MockResp;
 use client::mock_server::*;
+use client::{MockReq, MockResp};
 
 fn server() -> MockServer {
     MockServer::new()

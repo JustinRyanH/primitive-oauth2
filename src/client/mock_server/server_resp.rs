@@ -1,5 +1,4 @@
-use client::MockReq;
-use client::responses::MockResp;
+use client::{MockReq, MockResp};
 use errors::{Error, Result};
 
 pub enum ServerResp {

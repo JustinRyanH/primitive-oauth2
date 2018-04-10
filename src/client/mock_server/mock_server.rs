@@ -1,6 +1,5 @@
-use client::MockReq;
-use client::mock_server::ServerResp;
-use client::mock_server::routes::{auth_route, token_route};
+use client::mock_server::{ServerResp, routes::{auth_route, token_route}};
+use client::requests::MockReq;
 use errors::Error;
 
 #[derive(Debug, PartialEq)]

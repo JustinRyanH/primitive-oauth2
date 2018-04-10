@@ -3,6 +3,7 @@ pub mod authenticator;
 pub mod mock_client;
 pub mod mock_server;
 pub mod params;
+pub mod requests;
 pub mod responses;
 pub mod storage;
 
@@ -11,7 +12,7 @@ pub mod authenticator_spec;
 #[cfg(test)]
 pub mod mock_client_spec;
 
-pub use self::mock_client::MockReq;
+pub use self::requests::MockReq;
 pub use self::responses::{ErrorResponse, MockResp, TokenResponse};
 
 use errors::{Error, Result};
