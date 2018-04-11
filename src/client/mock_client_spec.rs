@@ -15,6 +15,15 @@ mod get_user_auth_request {
             mod when_state_is_off {}
         }
     }
+    mod implicit_flow {
+        // TODO: Implicit Flow
+    }
+    mod password_flow {
+        // TODO: Password Flow
+    }
+    mod two_legged_auth {
+        // TODO: Two-legged OAuth
+    }
 }
 
 mod handle_auth_redirect {
