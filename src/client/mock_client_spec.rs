@@ -1,6 +1,36 @@
+use client::MockReq;
+use client::mock_client::MockClient;
+use client::storage::MockMemoryStorage;
+use spectral::prelude::*;
+
+use errors::Result;
+
 mod get_user_auth_request {
+    use super::*;
+
     mod code_grant_flow {
-        mod response_type {}
+        use super::*;
+        use client::OauthClient;
+
+        #[inline]
+        fn storage() -> MockMemoryStorage {
+            MockMemoryStorage::new()
+        }
+
+        #[inline]
+        fn get_request(storage: &mut MockMemoryStorage) -> Result<MockReq> {
+            MockClient::new().unwrap().get_user_auth_request(storage)
+        }
+
+        mod response_type {
+            use super::*;
+
+            #[test]
+            fn it_sets_param_response_type_to_code() {
+                let mut storage = storage();
+                assert_that(&get_request(&mut storage)).is_ok();
+            }
+        }
         mod client_id {}
         mod redirect_uri {
             mod when_there_is_redirect {}

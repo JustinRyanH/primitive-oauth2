@@ -5,6 +5,30 @@ use client::responses::ErrorResponse;
 use errors::{Error, Result};
 
 #[derive(Debug, PartialEq, Clone)]
+pub struct ValidReq {
+    pub code: String,
+    pub state: Option<String>,
+}
+
+impl ValidReq {
+    pub fn from_url<T: Into<UrlQueryParams> + Clone>(into_params: &T) -> Result<ValidReq> {
+        let params: UrlQueryParams = into_params.clone().into();
+        let code: String = params
+            .get("code")
+            .ok_or("Requires a code to authorize token")?
+            .single()
+            .ok_or("Expected the code to be a single value")?
+            .clone();
+        let state = match params.get("state") {
+            Some(n) => n.single().cloned(),
+            None => None,
+        };
+
+        Ok(ValidReq { code, state })
+    }
+}
+
+#[derive(Debug, PartialEq, Clone)]
 pub struct MockReq {
     pub url: Url,
     pub body: String,
@@ -18,6 +42,10 @@ impl MockReq {
 
     pub fn parse_error_req(url: &'static str, err: &Error) -> Result<MockReq> {
         Ok(Url::parse_with_params(url, ErrorResponse::from(err).into_iter())?.into())
+    }
+
+    pub fn is_empty(&self) -> bool {
+        self.url.clone().query_pairs().count() == 0
     }
 }
 

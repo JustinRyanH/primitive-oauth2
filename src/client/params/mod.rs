@@ -86,8 +86,12 @@ impl UrlQueryParams {
         UrlQueryParams(HashMap::new())
     }
 
-    pub fn get<T: Into<String>>(&self, key: T) -> Option<ParamValue> {
-        self.0.get(&key.into()).map(|v| v.clone())
+    pub fn get<T: Into<String>>(&self, key: T) -> Option<&ParamValue> {
+        self.0.get(&key.into())
+    }
+
+    pub fn is_empty(&self) -> bool {
+        self.0.is_empty()
     }
 }
 

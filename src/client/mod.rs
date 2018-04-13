@@ -85,26 +85,3 @@ pub trait ClientStorage<C: Sized + OauthClient<Self>>: Sized {
     fn drop(&mut self, lookup: Self::Lookup) -> Result<C>;
     fn has(&self, lookup: Self::Lookup) -> Result<bool>;
 }
-
-struct ValidReq {
-    code: String,
-    state: Option<String>,
-}
-
-impl ValidReq {
-    fn from_url<T: Into<params::UrlQueryParams> + Clone>(into_params: &T) -> Result<ValidReq> {
-        let params: params::UrlQueryParams = into_params.clone().into();
-        let code: String = params
-            .get("code")
-            .ok_or("Requires a code to authorize token")?
-            .single()
-            .ok_or("Expected the code to be a single value")?
-            .clone();
-        let state = match params.get("state") {
-            Some(n) => n.single().cloned(),
-            None => None,
-        };
-
-        Ok(ValidReq { code, state })
-    }
-}
