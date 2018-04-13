@@ -21,9 +21,9 @@ impl MockClient {
             auth: BaseAuthenticator::new(
                 "someid@example.com",
                 "test",
-                Url::parse("http://example.com/auth")?,
-                Url::parse("http://example.com/token")?,
-            ),
+                "http://example.com/auth",
+                "http://example.com/token",
+            )?,
             scopes: vec![
                 "api.example.com/user.profile".to_string(),
                 "api.example.com/add_item".to_string(),

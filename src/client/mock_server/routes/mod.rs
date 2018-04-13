@@ -1,6 +1,8 @@
 pub mod auth;
 pub mod token;
 
+use std::borrow::Cow;
+
 use client::params::UrlQueryParams;
 use errors::{Error, Result};
 use url::Url;
@@ -14,12 +16,12 @@ mod auth_spec;
 mod token_spec;
 
 #[inline]
-pub fn parse_state(url: &Url) -> Result<String> {
+pub fn parse_state<'a>(url: &'a Url) -> Result<Cow<'a, str>> {
     single_param("state", url)
 }
 
 #[inline]
-pub fn maybe_single_param(name: &'static str, url: &Url) -> Option<String> {
+pub fn maybe_single_param<'a>(name: &'static str, url: &'a Url) -> Option<Cow<'a, str>> {
     match UrlQueryParams::from(url.query_pairs()).get(name) {
         Some(v) => v.single().map(|v| v.clone()),
         None => None,
@@ -27,8 +29,8 @@ pub fn maybe_single_param(name: &'static str, url: &Url) -> Option<String> {
 }
 
 #[inline]
-pub fn single_param(name: &'static str, url: &Url) -> Result<String> {
-    match UrlQueryParams::from(url.query_pairs()).get(name) {
+pub fn single_param<'a>(name: &'static str, url: &'a Url) -> Result<Cow<'a, str>> {
+    match UrlQueryParams::from(url).get(name) {
         Some(v) => Ok(v.single()
             .ok_or(Error::msg(
                 "Bad Request: Expected Single Parameter, found many",

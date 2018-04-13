@@ -1,3 +1,4 @@
+use std::borrow::Cow;
 use url::Url;
 
 use client::params::UrlQueryParams;
@@ -5,15 +6,15 @@ use client::responses::ErrorResponse;
 use errors::{Error, Result};
 
 #[derive(Debug, PartialEq, Clone)]
-pub struct ValidReq {
-    pub code: String,
-    pub state: Option<String>,
+pub struct ValidReq<'a> {
+    pub code: Cow<'a, str>,
+    pub state: Option<Cow<'a, str>>,
 }
 
-impl ValidReq {
-    pub fn from_url<T: Into<UrlQueryParams> + Clone>(into_params: &T) -> Result<ValidReq> {
+impl<'a> ValidReq<'a> {
+    pub fn from_url<T: Into<UrlQueryParams<'a>> + Clone>(into_params: &T) -> Result<ValidReq<'a>> {
         let params: UrlQueryParams = into_params.clone().into();
-        let code: String = params
+        let code: Cow<'a, str> = params
             .get("code")
             .ok_or("Requires a code to authorize token")?
             .single()
@@ -55,11 +56,5 @@ impl From<Url> for MockReq {
             url,
             body: "".into(),
         }
-    }
-}
-
-impl Into<UrlQueryParams> for MockReq {
-    fn into(self) -> UrlQueryParams {
-        UrlQueryParams::from(self.url)
     }
 }

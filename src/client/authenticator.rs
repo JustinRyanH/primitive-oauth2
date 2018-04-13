@@ -1,7 +1,6 @@
 use url_serde;
 use url::Url;
-
-use client::AccessType;
+use errors::Result;
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct BaseAuthenticator {
@@ -14,26 +13,21 @@ pub struct BaseAuthenticator {
 }
 
 impl BaseAuthenticator {
-    pub fn new<S: Into<String>>(
-        client_id: S,
-        client_secret: S,
-        auth_uri: Url,
-        token_uri: Url,
-    ) -> BaseAuthenticator {
-        BaseAuthenticator {
+    pub fn new<S: Into<String>, R: AsRef<str>>(client_id: S, client_secret: S, auth_uri: R, token_uri: R) -> Result<BaseAuthenticator> {
+        Ok(BaseAuthenticator {
             client_id: client_id.into(),
             client_secret: client_secret.into(),
-            auth_uri,
-            token_uri,
-        }
+            auth_uri: Url::parse(auth_uri.as_ref())?,
+            token_uri: Url::parse(token_uri.as_ref())?,
+        })
     }
 }
 
 impl Default for BaseAuthenticator {
     fn default() -> Self {
         BaseAuthenticator {
-            client_id: Default::default(),
-            client_secret: Default::default(),
+            client_id: "foobar@example.com".into(),
+            client_secret: "foobar_secret".into(),
             auth_uri: Url::parse("http://localhost/auth").unwrap(),
             token_uri: Url::parse("http://localhost/token").unwrap(),
         }
@@ -55,26 +49,5 @@ impl BaseAuthenticator {
 
     pub fn get_token_uri(&self) -> &str {
         self.token_uri.as_ref()
-    }
-
-    pub fn get_auth_params(
-        &self,
-        redirect_uri: &str,
-        scopes: &Vec<String>,
-        access_type: AccessType,
-        state: &str,
-    ) -> Vec<(&str, String)> {
-        let parsed_scopes: Vec<(&str, String)> = scopes
-            .into_iter()
-            .map(|scope| ("scope", scope.clone()))
-            .collect();
-        vec![
-            ("client_id", self.client_id.clone()),
-            ("redirect_uri", String::from(redirect_uri)),
-            ("response_type", access_type.get_response_type().to_string()),
-            ("state", state.into()),
-        ].into_iter()
-            .chain(parsed_scopes)
-            .collect()
     }
 }

@@ -2,6 +2,7 @@
 
 mod given_param_values {
     use std::iter::FromIterator;
+    use std::borrow::Cow;
 
     use spectral::prelude::*;
     use client::params::{ParamValue, UrlQueryParams};
@@ -25,7 +26,7 @@ mod given_param_values {
 
             assert_that(single_param)
                 .have_a_single_value()
-                .contains("a")
+                .is_equal_to(Cow::from("a"))
         }
     }
 
@@ -46,7 +47,7 @@ mod given_param_values {
             #[test]
             fn reads_from_iterator() {
                 assert_that(&*UrlQueryParams::from_iter(subject()))
-                    .contains_key(&"scope".to_string())
+                    .contains_key(Cow::from("scope"))
                     .have_multiple_values()
                     .has_length(3);
             }

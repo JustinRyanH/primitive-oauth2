@@ -8,8 +8,6 @@ pub mod responses;
 pub mod storage;
 
 #[cfg(test)]
-pub mod authenticator_spec;
-#[cfg(test)]
 pub mod mock_client_spec;
 
 pub use self::requests::MockReq;
