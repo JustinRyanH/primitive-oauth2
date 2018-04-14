@@ -19,6 +19,8 @@ pub mod errors;
 
 // SPEC ONLY CRATES
 #[cfg(test)]
+pub mod assertions;
+#[cfg(test)]
 extern crate dotenv;
 #[cfg(test)]
 extern crate envy;

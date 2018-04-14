@@ -124,17 +124,23 @@ impl<'a> From<&'a ErrorKind> for ErrorResponse {
             Option<String>,
             Option<String>,
         ) = match kind {
-            ErrorKind::Msg(msg) => ("server_error", Some(msg.clone()), None),
-            ErrorKind::InvalidRequest(desc, uri) => ("invalid_request", desc.clone(), uri.clone()),
-            ErrorKind::InvalidClient(desc, uri) => ("invalid_client", desc.clone(), uri.clone()),
-            ErrorKind::InvalidGrant(desc, uri) => ("invalid_grant", desc.clone(), uri.clone()),
-            ErrorKind::UnauthorizedClient(desc, uri) => {
+            &ErrorKind::Msg(ref msg) => ("server_error", Some(msg.clone()), None),
+            &ErrorKind::InvalidRequest(ref desc, ref uri) => {
+                ("invalid_request", desc.clone(), uri.clone())
+            }
+            &ErrorKind::InvalidClient(ref desc, ref uri) => {
+                ("invalid_client", desc.clone(), uri.clone())
+            }
+            &ErrorKind::InvalidGrant(ref desc, ref uri) => {
+                ("invalid_grant", desc.clone(), uri.clone())
+            }
+            &ErrorKind::UnauthorizedClient(ref desc, ref uri) => {
                 ("unauthorized_client", desc.clone(), uri.clone())
             }
-            ErrorKind::UnsupportedGrantType(desc, uri) => {
+            &ErrorKind::UnsupportedGrantType(ref desc,ref uri) => {
                 ("unsupported_grant_type", desc.clone(), uri.clone())
             }
-            ErrorKind::InvalidScope(desc, uri) => ("invalid_scope", desc.clone(), uri.clone()),
+            &ErrorKind::InvalidScope(ref desc,ref uri) => ("invalid_scope", desc.clone(), uri.clone()),
             _ => (
                 "unknown_error",
                 Some("Failed to Recongize Given ErrorKind".to_string()),

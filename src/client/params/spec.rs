@@ -6,7 +6,7 @@ mod given_param_values {
 
     use spectral::prelude::*;
     use client::params::{ParamValue, UrlQueryParams};
-    use client::params::test_helpers::ParamValueHelper;
+    use assertions::params::*;
 
     mod describe_spectral_methods {
         use super::*;

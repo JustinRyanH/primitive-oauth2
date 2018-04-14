@@ -138,10 +138,10 @@ where
                 let new_value: ParamValue = match acc.get(&key.clone().into()) {
                     None => ParamValue::Single(value.into().clone()),
                     Some(v) => match v {
-                        ParamValue::Single(sv) => {
+                        &ParamValue::Single(ref sv) => {
                             ParamValue::Multi(vec![sv.clone(), value.into()])
                         },
-                        ParamValue::Multi(mv) => ParamValue::Multi(
+                        &ParamValue::Multi(ref mv) => ParamValue::Multi(
                             mv.clone()
                                 .into_iter()
                                 .chain(vec![value.into()].into_iter())
@@ -168,56 +168,5 @@ impl<'a> From<url::form_urlencoded::Parse<'a>> for UrlQueryParams<'a> {
     #[inline]
     fn from(v: url::form_urlencoded::Parse<'a>) -> UrlQueryParams {
         UrlQueryParams::from_iter(v)
-    }
-}
-
-#[cfg(test)]
-pub mod test_helpers {
-    use super::*;
-    use spectral::{AssertionFailure, Spec};
-
-    pub trait ParamValueHelper<'s> {
-        fn have_a_single_value(&mut self) -> Spec<'s, Cow<'s, str>>;
-        fn have_multiple_values(&mut self) -> Spec<'s, Vec<Cow<'s, str>>>;
-    }
-
-    impl<'s> ParamValueHelper<'s> for Spec<'s, ParamValue<'s>> {
-        fn have_a_single_value(&mut self) -> Spec<'s, Cow<'s, str>> {
-            let subject = self.subject;
-
-            if let Some(value) = subject.single() {
-                return Spec {
-                    subject: value,
-                    subject_name: self.subject_name,
-                    location: self.location.clone(),
-                    description: self.description.clone(),
-                };
-            } else {
-                AssertionFailure::from_spec(self)
-                    .with_expected(format!("ParamValue to be: Single(Str)"))
-                    .with_actual(format!("ParamValue to be: {:?}", subject))
-                    .fail();
-            }
-            unreachable!()
-        }
-
-        fn have_multiple_values(&mut self) -> Spec<'s, Vec<Cow<'s, str>>> {
-            let subject = self.subject;
-
-            if let Some(value) = subject.multi() {
-                return Spec {
-                    subject: value,
-                    subject_name: self.subject_name,
-                    location: self.location.clone(),
-                    description: self.description.clone(),
-                };
-            } else {
-                AssertionFailure::from_spec(self)
-                    .with_expected(format!("ParamValue to be: Multi(Vec<Str>)"))
-                    .with_actual(format!("ParamValue to be: {:?}", subject))
-                    .fail();
-            }
-            unreachable!()
-        }
     }
 }
