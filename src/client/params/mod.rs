@@ -47,7 +47,7 @@ impl<'a> ParamValue<'a> {
 impl<'a, T> From<T> for ParamValue<'a>
 where
     T: Into<Cow<'a, str>>,
-{  
+{
     #[inline]
     fn from(v: T) -> ParamValue<'a> {
         ParamValue::Single(v.into())
@@ -56,7 +56,7 @@ where
 
 impl<'a, T> FromIterator<T> for ParamValue<'a>
 where
-    T: Into<Cow<'a, str>>
+    T: Into<Cow<'a, str>>,
 {
     #[inline]
     fn from_iter<I: IntoIterator<Item = T>>(iter: I) -> Self {
@@ -140,7 +140,7 @@ where
                     Some(v) => match v {
                         &ParamValue::Single(ref sv) => {
                             ParamValue::Multi(vec![sv.clone(), value.into()])
-                        },
+                        }
                         &ParamValue::Multi(ref mv) => ParamValue::Multi(
                             mv.clone()
                                 .into_iter()

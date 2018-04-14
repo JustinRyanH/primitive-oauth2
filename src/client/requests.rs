@@ -58,4 +58,3 @@ impl From<Url> for MockReq {
         }
     }
 }
-
