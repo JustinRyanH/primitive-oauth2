@@ -66,7 +66,10 @@ impl OauthClient<MockMemoryStorage> for MockClient {
         // storage
         //     .set(MockStorageKey::state(state), self.clone())
         //     .and_then(move |_| mock_req)
-        Ok(MockReq::from(Url::parse("https://localhost")?))
+        Ok(MockReq::from(Url::parse_with_params(
+            "https://localhost",
+            vec![("response_type", "code")],
+        )?))
     }
 
     fn handle_auth_redirect(_req: MockReq, _storage: &mut MockMemoryStorage) -> Result<Self> {

@@ -1,8 +1,13 @@
-use client::MockReq;
-use client::mock_client::MockClient;
-use client::storage::MockMemoryStorage;
+use std::borrow::Cow;
+
+#[allow(unused_imports)]
+use assertions::*;
 use spectral::prelude::*;
 
+use client::MockReq;
+use client::mock_client::MockClient;
+use client::params::UrlQueryParams;
+use client::storage::MockMemoryStorage;
 use errors::Result;
 
 mod get_user_auth_request {
@@ -28,7 +33,12 @@ mod get_user_auth_request {
             #[test]
             fn it_sets_param_response_type_to_code() {
                 let mut storage = storage();
-                assert_that(&get_request(&mut storage)).is_ok();
+                let req = get_request(&mut storage).unwrap();
+                let params = UrlQueryParams::from(&req.url);
+                assert_that(&params)
+                    .has_param("response_type")
+                    .have_a_single_value()
+                    .is_equal_to(Cow::from("code"));
             }
         }
         mod client_id {}
