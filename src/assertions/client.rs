@@ -1,7 +1,7 @@
-use spectral::{AssertionFailure, Spec};
 use client::{AccessType, mock_client::MockClient};
+use spectral::{AssertionFailure, Spec};
 
-pub trait MockClientHelper<'s> {
+pub trait MockClientAssertions<'s> {
     fn has_code(&mut self) -> Spec<'s, String>;
     fn has_no_code(&mut self);
     fn has_access_type_of(&mut self, expected_type: AccessType);
@@ -9,7 +9,7 @@ pub trait MockClientHelper<'s> {
     fn has_scopes_of<'a, T: Clone + Into<String>>(&mut self, expected_scope: &'a Vec<T>);
 }
 
-impl<'s> MockClientHelper<'s> for Spec<'s, MockClient> {
+impl<'s> MockClientAssertions<'s> for Spec<'s, MockClient> {
     fn has_code(&mut self) -> Spec<'s, String> {
         match self.subject.code {
             Some(ref val) => Spec {
