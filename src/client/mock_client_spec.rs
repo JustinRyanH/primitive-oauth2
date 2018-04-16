@@ -16,6 +16,17 @@ mod get_user_auth_request {
     mod code_grant_flow {
         use super::*;
         use client::OauthClient;
+        use client::authenticator::BaseAuthenticator;
+
+        #[inline]
+        fn base_auth() -> BaseAuthenticator {
+            BaseAuthenticator::new(
+                "someid@example.com",
+                "test",
+                "http://example.com/auth",
+                "http://example.com/token",
+            ).unwrap()
+        }
 
         #[inline]
         fn storage() -> MockMemoryStorage {
@@ -24,7 +35,9 @@ mod get_user_auth_request {
 
         #[inline]
         fn get_request(storage: &mut MockMemoryStorage) -> Result<MockReq> {
-            MockClient::new().unwrap().get_user_auth_request(storage)
+            MockClient::new(base_auth())
+                .unwrap()
+                .get_user_auth_request(storage)
         }
 
         mod response_type {
@@ -41,7 +54,21 @@ mod get_user_auth_request {
                     .is_equal_to(Cow::from("code"));
             }
         }
-        mod client_id {}
+        mod client_id {
+            use super::*;
+
+            #[test]
+            fn it_sets_param_client_id_to_given_code_type() {
+                let expected_client_id = base_auth().client_id;
+                let mut storage = storage();
+                let req = get_request(&mut storage).unwrap();
+                let params = UrlQueryParams::from(&req.url);
+                assert_that(&params)
+                    .has_param("client_id")
+                    .have_a_single_value()
+                    .is_equal_to(Cow::from(expected_client_id));
+            }
+        }
         mod redirect_uri {
             mod when_there_is_redirect {}
             mod when_there_is_no_redirect {}

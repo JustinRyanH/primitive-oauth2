@@ -1,19 +1,24 @@
-use url_serde;
-use url::Url;
 use errors::Result;
+use url::Url;
+use url_serde;
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct BaseAuthenticator {
-    client_id: String,
-    client_secret: String,
+    pub client_id: String,
+    pub client_secret: String,
     #[serde(with = "url_serde")]
-    auth_uri: Url,
+    pub auth_uri: Url,
     #[serde(with = "url_serde")]
-    token_uri: Url,
+    pub token_uri: Url,
 }
 
 impl BaseAuthenticator {
-    pub fn new<S: Into<String>, R: AsRef<str>>(client_id: S, client_secret: S, auth_uri: R, token_uri: R) -> Result<BaseAuthenticator> {
+    pub fn new<S: Into<String>, R: AsRef<str>>(
+        client_id: S,
+        client_secret: S,
+        auth_uri: R,
+        token_uri: R,
+    ) -> Result<BaseAuthenticator> {
         Ok(BaseAuthenticator {
             client_id: client_id.into(),
             client_secret: client_secret.into(),

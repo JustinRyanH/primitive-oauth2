@@ -16,14 +16,9 @@ pub struct MockClient {
 }
 
 impl MockClient {
-    pub fn new() -> Result<MockClient> {
+    pub fn new(auth: BaseAuthenticator) -> Result<MockClient> {
         Ok(MockClient {
-            auth: BaseAuthenticator::new(
-                "someid@example.com",
-                "test",
-                "http://example.com/auth",
-                "http://example.com/token",
-            )?,
+            auth: auth,
             scopes: vec![
                 "api.example.com/user.profile".to_string(),
                 "api.example.com/add_item".to_string(),
@@ -68,7 +63,10 @@ impl OauthClient<MockMemoryStorage> for MockClient {
         //     .and_then(move |_| mock_req)
         Ok(MockReq::from(Url::parse_with_params(
             "https://localhost",
-            vec![("response_type", "code")],
+            vec![
+                ("response_type", "code"),
+                ("client_id", self.auth.get_client_id()),
+            ],
         )?))
     }
 
