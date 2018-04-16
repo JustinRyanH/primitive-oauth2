@@ -111,7 +111,25 @@ mod get_user_auth_request {
                     assert_that(&params).has_no_param("scope");
                 }
             }
-            mod when_there_is_scope {}
+            mod when_there_is_scope {
+                use super::*;
+
+                #[inline]
+                fn mock_client() -> MockClient {
+                    MockClient::new(base_auth(), expected_redirect())
+                        .unwrap()
+                        .with_scope(vec![
+                            String::from("user.profile"),
+                            String::from("account.profile"),
+                        ])
+                }
+
+                #[test]
+                fn it_has_some_scopes() {
+                    assert_that(&mock_client().scope).contains::<String>("user.profile".into());
+                    assert_that(&mock_client().scope).contains::<String>("account.profile".into());
+                }
+            }
         }
         mod state {
             mod when_state_is_on {}
