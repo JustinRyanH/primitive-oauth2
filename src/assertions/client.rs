@@ -1,3 +1,5 @@
+use std::fmt;
+
 use client::{AccessType, mock_client::MockClient};
 use spectral::{AssertionFailure, Spec};
 
@@ -5,7 +7,7 @@ pub trait MockClientAssertions<'s> {
     fn has_code(&mut self) -> Spec<'s, String>;
     fn has_no_code(&mut self);
     fn has_access_type_of(&mut self, expected_type: AccessType);
-    fn has_redirect_uri_of(&mut self, expected_uri: &'static str);
+    fn has_redirect_uri_of<S>(&mut self, expected_uri: S) where S: Into<String> + fmt::Debug;
     fn has_scopes_of<'a, T: Clone + Into<String>>(&mut self, expected_scope: &'a Vec<T>);
 }
 
@@ -55,13 +57,14 @@ impl<'s> MockClientAssertions<'s> for Spec<'s, MockClient> {
         }
     }
 
-    fn has_redirect_uri_of(&mut self, expected_uri: &'static str) {
-        let subject_uri = self.subject.redirect_uri;
-        if subject_uri == expected_uri {
+    fn has_redirect_uri_of<S>(&mut self, expected_uri: S) where S: Into<String> + fmt::Debug {
+        let subject_uri = self.subject.redirect_uri.clone();
+        let expected_uri_string: String = expected_uri.into();
+        if subject_uri == expected_uri_string {
             ()
         } else {
             AssertionFailure::from_spec(self)
-                .with_expected(format!("`MockClient.redirect_uri` of {:?}", expected_uri))
+                .with_expected(format!("`MockClient.redirect_uri` of {:?}", expected_uri_string))
                 .with_actual(format!("`MockClient.redirect_uri` of {:?}", subject_uri))
                 .fail();
             unreachable!();

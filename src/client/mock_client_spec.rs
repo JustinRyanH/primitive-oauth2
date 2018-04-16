@@ -19,6 +19,11 @@ mod get_user_auth_request {
         use client::authenticator::BaseAuthenticator;
 
         #[inline]
+        fn expected_redirect() -> &'static str {
+            "https://localhost:8080/oauth/example"
+        }
+
+        #[inline]
         fn base_auth() -> BaseAuthenticator {
             BaseAuthenticator::new(
                 "someid@example.com",
@@ -35,7 +40,7 @@ mod get_user_auth_request {
 
         #[inline]
         fn get_request(storage: &mut MockMemoryStorage) -> Result<MockReq> {
-            MockClient::new(base_auth())
+            MockClient::new(base_auth(), expected_redirect())
                 .unwrap()
                 .get_user_auth_request(storage)
         }
@@ -70,8 +75,19 @@ mod get_user_auth_request {
             }
         }
         mod redirect_uri {
-            mod when_there_is_redirect {}
-            mod when_there_is_no_redirect {}
+            use super::*;
+
+            #[test]
+            fn it_sets_param_client_id_to_given_code_type() {
+                let expected_redirect_uri = expected_redirect();
+                let mut storage = storage();
+                let req = get_request(&mut storage).unwrap();
+                let params = UrlQueryParams::from(&req.url);
+                assert_that(&params)
+                    .has_param("redirect_uri")
+                    .have_a_single_value()
+                    .is_equal_to(Cow::from(expected_redirect_uri));
+            }
         }
         mod scope {
             mod when_there_is_no_scope {}

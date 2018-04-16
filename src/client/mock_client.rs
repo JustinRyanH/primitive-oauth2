@@ -10,20 +10,20 @@ use errors::Result;
 pub struct MockClient {
     pub auth: BaseAuthenticator,
     pub scopes: Vec<String>,
-    pub redirect_uri: &'static str,
+    pub redirect_uri: String,
     pub access_type: AccessType,
     pub code: Option<String>,
 }
 
 impl MockClient {
-    pub fn new(auth: BaseAuthenticator) -> Result<MockClient> {
+    pub fn new<S: Into<String>>(auth: BaseAuthenticator, redirect: S) -> Result<MockClient> {
         Ok(MockClient {
-            auth: auth,
+            auth,
             scopes: vec![
                 "api.example.com/user.profile".to_string(),
                 "api.example.com/add_item".to_string(),
             ],
-            redirect_uri: "https://localhost:8080/oauth/example",
+            redirect_uri: redirect.into(),
             access_type: AccessType::Grant,
             code: None,
         })
@@ -66,6 +66,7 @@ impl OauthClient<MockMemoryStorage> for MockClient {
             vec![
                 ("response_type", "code"),
                 ("client_id", self.auth.get_client_id()),
+                ("redirect_uri", self.redirect_uri.as_ref()),
             ],
         )?))
     }
