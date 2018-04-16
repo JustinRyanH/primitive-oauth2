@@ -12,37 +12,40 @@ use errors::Result;
 
 mod get_user_auth_request {
     use super::*;
+    use client::OauthClient;
+    use client::authenticator::BaseAuthenticator;
+
+    #[inline]
+    fn base_auth() -> BaseAuthenticator {
+        BaseAuthenticator::new(
+            "someid@example.com",
+            "test",
+            "http://example.com/auth",
+            "http://example.com/token",
+        ).unwrap()
+    }
+
+    #[inline]
+    fn expected_redirect() -> &'static str {
+        "https://localhost:8080/oauth/example"
+    }
+
+    #[inline]
+    fn mock_client() -> MockClient {
+        MockClient::new(base_auth(), expected_redirect()).unwrap()
+    }
+
+    #[inline]
+    fn get_request(storage: &mut MockMemoryStorage) -> Result<MockReq> {
+        mock_client().get_user_auth_request(storage)
+    }
 
     mod code_grant_flow {
         use super::*;
-        use client::OauthClient;
-        use client::authenticator::BaseAuthenticator;
-
-        #[inline]
-        fn expected_redirect() -> &'static str {
-            "https://localhost:8080/oauth/example"
-        }
-
-        #[inline]
-        fn base_auth() -> BaseAuthenticator {
-            BaseAuthenticator::new(
-                "someid@example.com",
-                "test",
-                "http://example.com/auth",
-                "http://example.com/token",
-            ).unwrap()
-        }
 
         #[inline]
         fn storage() -> MockMemoryStorage {
             MockMemoryStorage::new()
-        }
-
-        #[inline]
-        fn get_request(storage: &mut MockMemoryStorage) -> Result<MockReq> {
-            MockClient::new(base_auth(), expected_redirect())
-                .unwrap()
-                .get_user_auth_request(storage)
         }
 
         mod response_type {
@@ -90,7 +93,24 @@ mod get_user_auth_request {
             }
         }
         mod scope {
-            mod when_there_is_no_scope {}
+            use super::*;
+
+            mod when_there_is_no_scope {
+                use super::*;
+
+                #[test]
+                fn it_has_no_scope() {
+                    assert_that(&mock_client().scope).has_length(0);
+                }
+
+                #[test]
+                fn it_doesnt_supply_scope_in_params() {
+                    let mut storage = storage();
+                    let req = get_request(&mut storage).unwrap();
+                    let params = UrlQueryParams::from(&req.url);
+                    assert_that(&params).has_no_param("scope");
+                }
+            }
             mod when_there_is_scope {}
         }
         mod state {

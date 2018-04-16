@@ -52,6 +52,9 @@ pub trait UrlparamsAssertion<'s> {
     fn has_param<T>(&mut self, param: T) -> Spec<'s, ParamValue<'s>>
     where
         T: Clone + fmt::Debug + Into<Cow<'s, str>>;
+    fn has_no_param<T>(&mut self, param: T)
+    where
+        T: Clone + fmt::Debug + Into<Cow<'s, str>>;
 }
 
 impl<'s> UrlparamsAssertion<'s> for Spec<'s, UrlQueryParams<'s>> {
@@ -81,5 +84,21 @@ impl<'s> UrlparamsAssertion<'s> for Spec<'s, UrlQueryParams<'s>> {
                 .fail();
         }
         unreachable!()
+    }
+
+    fn has_no_param<T: fmt::Debug + Into<Cow<'s, str>>>(&mut self, param: T)
+    where
+        T: Clone + fmt::Debug + Into<Cow<'s, str>>,
+    {
+        let get_result = self.subject.get(param.clone());
+        if let Some(_) = get_result {
+            AssertionFailure::from_spec(self)
+                .with_expected(format!("UrlQueryParams to not have Param {:?}", param))
+                .with_actual(format!(
+                    "UrlQueryParams has the keys of: {:?}",
+                    self.subject.keys()
+                ))
+                .fail();
+        }
     }
 }

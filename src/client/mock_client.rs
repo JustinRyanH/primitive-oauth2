@@ -9,7 +9,7 @@ use errors::Result;
 #[derive(Debug, Clone, PartialEq)]
 pub struct MockClient {
     pub auth: BaseAuthenticator,
-    pub scopes: Vec<String>,
+    pub scope: Vec<String>,
     pub redirect_uri: String,
     pub access_type: AccessType,
     pub code: Option<String>,
@@ -19,10 +19,7 @@ impl MockClient {
     pub fn new<S: Into<String>>(auth: BaseAuthenticator, redirect: S) -> Result<MockClient> {
         Ok(MockClient {
             auth,
-            scopes: vec![
-                "api.example.com/user.profile".to_string(),
-                "api.example.com/add_item".to_string(),
-            ],
+            scope: vec![],
             redirect_uri: redirect.into(),
             access_type: AccessType::Grant,
             code: None,
@@ -32,10 +29,20 @@ impl MockClient {
     pub fn with_code<S: Into<String>>(self, code: S) -> MockClient {
         MockClient {
             auth: self.auth,
-            scopes: self.scopes,
+            scope: self.scope,
+            code: Some(code.into()),
             redirect_uri: self.redirect_uri,
             access_type: self.access_type,
-            code: Some(code.into()),
+        }
+    }
+
+    pub fn with_scope(self, scope: Vec<String>) -> MockClient {
+        MockClient {
+            auth: self.auth,
+            code: self.code,
+            access_type: self.access_type,
+            redirect_uri: self.redirect_uri,
+            scope,
         }
     }
 }
