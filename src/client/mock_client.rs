@@ -105,8 +105,6 @@ impl OauthClient<MockMemoryStorage> for MockClient {
             ("redirect_uri", Cow::from(self.redirect_uri.as_ref())),
         ];
 
-        println!("Scope: {:?}", self.scope);
-
         let scope = self.scope
             .iter()
             .map(|v| v.as_ref())
