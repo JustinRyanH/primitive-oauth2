@@ -1,3 +1,5 @@
+use std::borrow::Cow;
+
 use url::Url;
 
 use client::OauthClient;
@@ -80,7 +82,7 @@ impl OauthClient<MockMemoryStorage> for MockClient {
     type Request = MockReq;
     type Response = MockResp;
 
-    fn get_user_auth_request(&self, _storage: &mut MockMemoryStorage) -> Result<MockReq> {
+    fn get_user_auth_request<'a>(&'a self, _storage: &'a mut MockMemoryStorage) -> Result<MockReq> {
         // let state = "EXAMPLE_STATE";
         // let mock_req = match Url::parse_with_params(
         //     self.auth.get_auth_uri(),
@@ -97,13 +99,27 @@ impl OauthClient<MockMemoryStorage> for MockClient {
         // storage
         //     .set(MockStorageKey::state(state), self.clone())
         //     .and_then(move |_| mock_req)
+        let mut params: Vec<(&str, Cow<'a, str>)> = vec![
+            ("response_type", "code".into()),
+            ("client_id", self.auth.get_client_id().into()),
+            ("redirect_uri", Cow::from(self.redirect_uri.as_ref())),
+        ];
+
+        println!("Scope: {:?}", self.scope);
+
+        let scope = self.scope
+            .iter()
+            .map(|v| v.as_ref())
+            .collect::<Vec<&str>>()
+            .join(" ");
+
+        if !scope.is_empty() {
+            params.push(("scope", scope.into()))
+        }
+
         Ok(MockReq::from(Url::parse_with_params(
             "https://localhost",
-            vec![
-                ("response_type", "code"),
-                ("client_id", self.auth.get_client_id()),
-                ("redirect_uri", self.redirect_uri.as_ref()),
-            ],
+            params,
         )?))
     }
 

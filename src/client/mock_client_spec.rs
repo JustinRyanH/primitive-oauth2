@@ -36,8 +36,8 @@ mod get_user_auth_request {
     }
 
     #[inline]
-    fn get_request(storage: &mut MockMemoryStorage) -> Result<MockReq> {
-        mock_client().get_user_auth_request(storage)
+    fn get_request(client: &MockClient, storage: &mut MockMemoryStorage) -> Result<MockReq> {
+        client.get_user_auth_request(storage)
     }
 
     mod code_grant_flow {
@@ -54,7 +54,7 @@ mod get_user_auth_request {
             #[test]
             fn it_sets_param_response_type_to_code() {
                 let mut storage = storage();
-                let req = get_request(&mut storage).unwrap();
+                let req = get_request(&mock_client(), &mut storage).unwrap();
                 let params = UrlQueryParams::from(&req.url);
                 assert_that(&params)
                     .has_param("response_type")
@@ -69,7 +69,7 @@ mod get_user_auth_request {
             fn it_sets_param_client_id_to_given_code_type() {
                 let expected_client_id = base_auth().client_id;
                 let mut storage = storage();
-                let req = get_request(&mut storage).unwrap();
+                let req = get_request(&mock_client(), &mut storage).unwrap();
                 let params = UrlQueryParams::from(&req.url);
                 assert_that(&params)
                     .has_param("client_id")
@@ -84,7 +84,7 @@ mod get_user_auth_request {
             fn it_sets_param_client_id_to_given_code_type() {
                 let expected_redirect_uri = expected_redirect();
                 let mut storage = storage();
-                let req = get_request(&mut storage).unwrap();
+                let req = get_request(&mock_client(), &mut storage).unwrap();
                 let params = UrlQueryParams::from(&req.url);
                 assert_that(&params)
                     .has_param("redirect_uri")
@@ -106,7 +106,7 @@ mod get_user_auth_request {
                 #[test]
                 fn it_doesnt_supply_scope_in_params() {
                     let mut storage = storage();
-                    let req = get_request(&mut storage).unwrap();
+                    let req = get_request(&mock_client(), &mut storage).unwrap();
                     let params = UrlQueryParams::from(&req.url);
                     assert_that(&params).has_no_param("scope");
                 }
@@ -128,6 +128,17 @@ mod get_user_auth_request {
                 fn it_has_some_scopes() {
                     assert_that(&mock_client().scope).contains::<String>("user.profile".into());
                     assert_that(&mock_client().scope).contains::<String>("account.profile".into());
+                }
+
+                #[test]
+                fn it_supplies_scope_in_params() {
+                    let mut storage = storage();
+                    let req = get_request(&mock_client(), &mut storage).unwrap();
+                    let params = UrlQueryParams::from(&req.url);
+                    assert_that(&params)
+                        .has_param("scope")
+                        .have_a_single_value()
+                        .is_equal_to(Cow::from("user.profile account.profile"));
                 }
             }
         }
