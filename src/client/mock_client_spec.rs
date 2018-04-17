@@ -92,6 +92,7 @@ mod get_user_auth_request {
                     .is_equal_to(Cow::from(expected_redirect_uri));
             }
         }
+
         mod scope {
             use super::*;
 
@@ -111,6 +112,8 @@ mod get_user_auth_request {
                     assert_that(&params).has_no_param("scope");
                 }
             }
+
+            // Foramts scope into space seperated list per https://tools.ietf.org/html/rfc6749#section-3.3
             mod when_there_is_scope {
                 use super::*;
 
