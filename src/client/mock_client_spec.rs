@@ -132,8 +132,31 @@ mod get_user_auth_request {
             }
         }
         mod state {
-            mod when_state_is_on {}
-            mod when_state_is_off {}
+            use super::*;
+            mod when_state_is_on {
+
+                #[inline]
+                fn mock_client() -> MockClient {
+                    MockClient::new(base_auth(), expected_redirect())
+                        .unwrap()
+                        .with_state("FOOBAR_STATE")
+                }
+
+                use super::*;
+
+                #[test]
+                fn assert_state_is_on() {
+                    assert_that(&mock_client().state).is_some();
+                }
+            }
+            mod when_state_is_off {
+                use super::*;
+
+                #[test]
+                fn assert_state_is_off() {
+                    assert_that(&mock_client().state).is_none();
+                }
+            }
         }
     }
     mod implicit_flow {

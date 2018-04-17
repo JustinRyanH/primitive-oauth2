@@ -13,6 +13,7 @@ pub struct MockClient {
     pub redirect_uri: String,
     pub access_type: AccessType,
     pub code: Option<String>,
+    pub state: Option<String>,
 }
 
 impl MockClient {
@@ -23,6 +24,7 @@ impl MockClient {
             redirect_uri: redirect.into(),
             access_type: AccessType::Grant,
             code: None,
+            state: None,
         })
     }
 
@@ -33,6 +35,7 @@ impl MockClient {
             code: Some(code.into()),
             redirect_uri: self.redirect_uri,
             access_type: self.access_type,
+            state: self.state,
         }
     }
 
@@ -42,7 +45,33 @@ impl MockClient {
             code: self.code,
             access_type: self.access_type,
             redirect_uri: self.redirect_uri,
+            state: self.state,
             scope,
+        }
+    }
+
+    pub fn with_state<S>(self, state: S) -> MockClient
+    where
+        S: Into<String>,
+    {
+        MockClient {
+            auth: self.auth,
+            code: self.code,
+            access_type: self.access_type,
+            redirect_uri: self.redirect_uri,
+            scope: self.scope,
+            state: Some(state.into()),
+        }
+    }
+
+    pub fn with_no_state(self) -> MockClient {
+        MockClient {
+            auth: self.auth,
+            code: self.code,
+            access_type: self.access_type,
+            redirect_uri: self.redirect_uri,
+            scope: self.scope,
+            state: None,
         }
     }
 }
