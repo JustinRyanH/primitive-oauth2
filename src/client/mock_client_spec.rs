@@ -148,6 +148,7 @@ mod get_user_auth_request {
         mod state {
             use super::*;
             mod when_state_is_on {
+                use super::*;
 
                 #[inline]
                 fn mock_client() -> MockClient {
@@ -156,12 +157,21 @@ mod get_user_auth_request {
                         .with_state("FOOBAR_STATE")
                 }
 
-                use super::*;
-
                 #[test]
                 fn assert_state_is_on() {
                     assert_that(&mock_client().state).is_some();
                 }
+
+                #[test]
+                fn it_supplies_state_in_params() {
+                    let mut storage = storage();
+                    let req = get_request(&mock_client(), &mut storage).unwrap();
+                    let params = UrlQueryParams::from(&req.url);
+                    assert_that(&params).has_param("state");
+                }
+
+                #[test]
+                fn it_persistes_the_client() {}
             }
             mod when_state_is_off {
                 use super::*;
@@ -170,6 +180,17 @@ mod get_user_auth_request {
                 fn assert_state_is_off() {
                     assert_that(&mock_client().state).is_none();
                 }
+
+                #[test]
+                fn it_supplies_state_in_params() {
+                    let mut storage = storage();
+                    let req = get_request(&mock_client(), &mut storage).unwrap();
+                    let params = UrlQueryParams::from(&req.url);
+                    assert_that(&params).has_no_param("state");
+                }
+
+                #[test]
+                fn it_should_not_persist_the_client() {}
             }
         }
     }

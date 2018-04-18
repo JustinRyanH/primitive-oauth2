@@ -83,22 +83,6 @@ impl OauthClient<MockMemoryStorage> for MockClient {
     type Response = MockResp;
 
     fn get_user_auth_request<'a>(&'a self, _storage: &'a mut MockMemoryStorage) -> Result<MockReq> {
-        // let state = "EXAMPLE_STATE";
-        // let mock_req = match Url::parse_with_params(
-        //     self.auth.get_auth_uri(),
-        //     self.auth
-        //         .get_auth_params(&self.redirect_uri, &self.scopes, self.access_type, state),
-        // ) {
-        //     Ok(url) => Ok(MockReq {
-        //         url,
-        //         body: String::from(""),
-        //     }),
-        //     Err(e) => Err(e.into()),
-        // };
-
-        // storage
-        //     .set(MockStorageKey::state(state), self.clone())
-        //     .and_then(move |_| mock_req)
         let mut params: Vec<(&str, Cow<'a, str>)> = vec![
             ("response_type", "code".into()),
             ("client_id", self.auth.get_client_id().into()),
@@ -113,6 +97,10 @@ impl OauthClient<MockMemoryStorage> for MockClient {
 
         if !scope.is_empty() {
             params.push(("scope", scope.into()))
+        }
+
+        if let Some(ref state) = self.state {
+            params.push(("state", Cow::from(state.as_ref())))
         }
 
         Ok(MockReq::from(Url::parse_with_params(
