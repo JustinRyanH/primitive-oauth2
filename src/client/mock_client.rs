@@ -4,7 +4,7 @@ use url::Url;
 
 use client::OauthClient;
 use client::authenticator::BaseAuthenticator;
-use client::storage::MockMemoryStorage;
+use client::storage::{MockMemoryStorage, MockStorageKey};
 use client::*;
 use errors::Result;
 
@@ -82,7 +82,7 @@ impl OauthClient<MockMemoryStorage> for MockClient {
     type Request = MockReq;
     type Response = MockResp;
 
-    fn get_user_auth_request<'a>(&'a self, _storage: &'a mut MockMemoryStorage) -> Result<MockReq> {
+    fn get_user_auth_request<'a>(&'a self, storage: &'a mut MockMemoryStorage) -> Result<MockReq> {
         let mut params: Vec<(&str, Cow<'a, str>)> = vec![
             ("response_type", "code".into()),
             ("client_id", self.auth.get_client_id().into()),
@@ -100,7 +100,8 @@ impl OauthClient<MockMemoryStorage> for MockClient {
         }
 
         if let Some(ref state) = self.state {
-            params.push(("state", Cow::from(state.as_ref())))
+            params.push(("state", Cow::from(state.as_ref())));
+            storage.set(MockStorageKey::state(state.as_ref()), self.clone())?;
         }
 
         Ok(MockReq::from(Url::parse_with_params(

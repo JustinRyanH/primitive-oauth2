@@ -8,6 +8,7 @@ use client::MockReq;
 use client::mock_client::MockClient;
 use client::params::UrlQueryParams;
 use client::storage::MockMemoryStorage;
+use client::storage::MockStorageKey;
 use errors::Result;
 
 mod get_user_auth_request {
@@ -151,10 +152,15 @@ mod get_user_auth_request {
                 use super::*;
 
                 #[inline]
+                fn state() -> &'static str {
+                    "FOOBAR_STATE"
+                }
+
+                #[inline]
                 fn mock_client() -> MockClient {
                     MockClient::new(base_auth(), expected_redirect())
                         .unwrap()
-                        .with_state("FOOBAR_STATE")
+                        .with_state(state())
                 }
 
                 #[test]
@@ -171,7 +177,14 @@ mod get_user_auth_request {
                 }
 
                 #[test]
-                fn it_persistes_the_client() {}
+                fn it_persistes_the_client() {
+                    let mut storage = storage();
+                    assert_that(&*storage.read().unwrap()).is_empty();
+                    let req = get_request(&mock_client(), &mut storage);
+                    assert_that(&req).is_ok();
+                    assert_that(&*storage.read().unwrap())
+                        .contains_key(MockStorageKey::state(state()));
+                }
             }
             mod when_state_is_off {
                 use super::*;
@@ -190,7 +203,13 @@ mod get_user_auth_request {
                 }
 
                 #[test]
-                fn it_should_not_persist_the_client() {}
+                fn it_should_not_persist_the_client() {
+                    let mut storage = storage();
+                    assert_that(&*storage.read().unwrap()).is_empty();
+                    let req = get_request(&mock_client(), &mut storage);
+                    assert_that(&req).is_ok();
+                    assert_that(&*storage.read().unwrap()).is_empty();
+                }
             }
         }
     }
