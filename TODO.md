@@ -69,6 +69,8 @@ Phase 3
 - [ ] Use Implement a Actix Web with Generic Client
 - [ ] Generic Client allows allows to specify extra options
 - [ ] Move Mock Client to use Generic Client
+- [ ] Answering Questions
+  - [ ] Should the API take storage every time? (Yes. NullStorage is fine)
 
 Phase 4
 ---
