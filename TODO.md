@@ -29,8 +29,9 @@ Phase 2.1.1 - Mock Server Response Token Options
 
 Phase 2.1.2 - Mock Client - [Code Grant](https://tools.ietf.org/html/rfc6749#section-4.1)
 ---
-- [ ] 4.1.2 Make Auth Request
-  - [ ] With State
+- [ ] User specifies in Mock Client State generator
+- [x] 4.1.2 Make Auth Request
+  - [x] With State
     - [ ] Assert it stores in state
 - [ ] 4.1.2 Handle Auth Response
   - [ ]  4.1.2.0 Happy
