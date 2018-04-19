@@ -95,3 +95,7 @@ Side Tasks
 ---
 - [ ] Drop `error_chain`, it's getting gross
 - [ ] Replace all instances of String with `Cow<'a, str>`
+
+Temp
+---
+-[ ] Get Flatten working with serde
