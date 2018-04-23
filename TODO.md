@@ -1,3 +1,7 @@
+Current
+----
+Remove Error Chain. It is causing more pain then benifit
+
 Phase 1
 ----
 - [x] Seperate Authenticator's specs into their own file
