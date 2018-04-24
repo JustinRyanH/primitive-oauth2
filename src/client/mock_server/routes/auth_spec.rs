@@ -2,9 +2,9 @@ use spectral::prelude::*;
 use url::Url;
 
 use super::auth::{auth as auth_route, auth_response};
-use client::MockReq;
 use client::mock_server::*;
-use errors::Error;
+use client::MockReq;
+use errors::ErrorKind;
 
 fn server() -> MockServer {
     MockServer::new()
@@ -52,13 +52,14 @@ mod with_error {
     }
 
     fn server() -> MockServer {
-        MockServer::new().with_error(Error::msg("Server Error"))
+        MockServer::new().with_error(ErrorKind::msg("Server Error"))
     }
 
     #[test]
     fn returns_a_redirect_with_error() {
         let expected_req =
-            MockReq::parse_error_req("https://example.com", &Error::msg("Server Error")).unwrap();
+            MockReq::parse_error_req("https://example.com", &ErrorKind::msg("Server Error"))
+                .unwrap();
         assert_that(&auth_response(&server(), request(params())).redirect())
             .is_ok()
             .is_equal_to(expected_req);

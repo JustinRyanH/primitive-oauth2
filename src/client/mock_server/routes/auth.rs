@@ -1,9 +1,9 @@
 use url::Url;
 
 use super::parse_state;
-use client::MockReq;
 use client::mock_server::{MockServer, ServerResp};
-use errors::Result;
+use client::MockReq;
+use errors::OAuthResult;
 
 pub fn auth_response(server: &MockServer, req: MockReq) -> ServerResp {
     if let Some(ref err) = server.error {
@@ -13,7 +13,7 @@ pub fn auth_response(server: &MockServer, req: MockReq) -> ServerResp {
 }
 
 #[inline]
-pub fn auth(_: &MockServer, req: &MockReq) -> Result<MockReq> {
+pub fn auth(_: &MockServer, req: &MockReq) -> OAuthResult<MockReq> {
     let state = parse_state(&req.url)?;
 
     Ok(MockReq {

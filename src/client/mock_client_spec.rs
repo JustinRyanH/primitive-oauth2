@@ -4,17 +4,17 @@ use std::borrow::Cow;
 use assertions::*;
 use spectral::prelude::*;
 
-use client::MockReq;
 use client::mock_client::MockClient;
 use client::params::UrlQueryParams;
 use client::storage::MockMemoryStorage;
 use client::storage::MockStorageKey;
-use errors::Result;
+use client::MockReq;
+use errors::OAuthResult;
 
 mod get_user_auth_request {
     use super::*;
-    use client::OauthClient;
     use client::authenticator::BaseAuthenticator;
+    use client::OauthClient;
 
     #[inline]
     fn base_auth() -> BaseAuthenticator {
@@ -37,7 +37,7 @@ mod get_user_auth_request {
     }
 
     #[inline]
-    fn get_request(client: &MockClient, storage: &mut MockMemoryStorage) -> Result<MockReq> {
+    fn get_request(client: &MockClient, storage: &mut MockMemoryStorage) -> OAuthResult<MockReq> {
         client.get_user_auth_request(storage)
     }
 

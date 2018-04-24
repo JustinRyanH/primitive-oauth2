@@ -1,8 +1,8 @@
-use errors::Result;
+use errors::OAuthResult;
 
-use client::MockReq;
-use client::mock_server::{MockServer, ServerResp, routes::parse_state};
+use client::mock_server::{routes::parse_state, MockServer, ServerResp};
 use client::responses::{MockResp, TokenResponse};
+use client::MockReq;
 
 pub static MOCK_TOKEN: &'static str = "TU9DS19UT0tFTg==";
 
@@ -15,7 +15,7 @@ pub fn token_response(server: &MockServer, req: MockReq) -> ServerResp {
 }
 
 #[inline]
-pub fn token(server: &MockServer, req: &MockReq) -> Result<MockResp> {
+pub fn token(server: &MockServer, req: &MockReq) -> OAuthResult<MockResp> {
     let mut token_resp = TokenResponse::new(MOCK_TOKEN, "bearer");
 
     if let Some(expiration) = server.token_ops.expiration {

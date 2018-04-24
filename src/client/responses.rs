@@ -1,4 +1,4 @@
-use errors::{Error, ErrorKind, Result};
+use errors::{ErrorKind, OAuthResult};
 use serde_json;
 
 #[derive(Debug, PartialEq, Clone)]
@@ -7,18 +7,12 @@ pub struct MockResp {
 }
 
 impl MockResp {
-    pub fn parse_error_resp(err: &Error) -> Result<MockResp> {
-        match serde_json::to_string::<ErrorResponse>(&ErrorResponse::from(err)) {
-            Ok(k) => Ok(k.into()),
-            Err(e) => Err(e.into()),
-        }
+    pub fn parse_error_resp(err: &ErrorKind) -> OAuthResult<MockResp> {
+        Ok(serde_json::to_string::<ErrorResponse>(&ErrorResponse::from(err))?.into())
     }
 
-    pub fn parse_access_token_response(token: &TokenResponse) -> Result<MockResp> {
-        match serde_json::to_string::<TokenResponse>(token) {
-            Ok(k) => Ok(k.into()),
-            Err(e) => Err(e.into()),
-        }
+    pub fn parse_access_token_response(token: &TokenResponse) -> OAuthResult<MockResp> {
+        Ok(serde_json::to_string::<TokenResponse>(token)?.into())
     }
 }
 
@@ -124,7 +118,7 @@ impl<'a> From<&'a ErrorKind> for ErrorResponse {
             Option<String>,
             Option<String>,
         ) = match kind {
-            &ErrorKind::Msg(ref msg) => ("server_error", Some(msg.clone()), None),
+            &ErrorKind::UnknownError(ref msg) => ("server_error", Some(msg.clone()), None),
             &ErrorKind::InvalidRequest(ref desc, ref uri) => {
                 ("invalid_request", desc.clone(), uri.clone())
             }
@@ -137,10 +131,12 @@ impl<'a> From<&'a ErrorKind> for ErrorResponse {
             &ErrorKind::UnauthorizedClient(ref desc, ref uri) => {
                 ("unauthorized_client", desc.clone(), uri.clone())
             }
-            &ErrorKind::UnsupportedGrantType(ref desc,ref uri) => {
+            &ErrorKind::UnsupportedGrantType(ref desc, ref uri) => {
                 ("unsupported_grant_type", desc.clone(), uri.clone())
             }
-            &ErrorKind::InvalidScope(ref desc,ref uri) => ("invalid_scope", desc.clone(), uri.clone()),
+            &ErrorKind::InvalidScope(ref desc, ref uri) => {
+                ("invalid_scope", desc.clone(), uri.clone())
+            }
             _ => (
                 "unknown_error",
                 Some("Failed to Recongize Given ErrorKind".to_string()),
@@ -153,13 +149,6 @@ impl<'a> From<&'a ErrorKind> for ErrorResponse {
             error_uri: error_uri,
             state: None,
         }
-    }
-}
-
-impl<'a> From<&'a Error> for ErrorResponse {
-    #[inline]
-    fn from(e: &'a Error) -> ErrorResponse {
-        e.kind().into()
     }
 }
 

@@ -4,7 +4,7 @@ pub mod token;
 use std::borrow::Cow;
 
 use client::params::UrlQueryParams;
-use errors::{Error, Result};
+use errors::{ErrorKind, OAuthResult};
 use url::Url;
 
 pub use self::auth::auth_response as auth_route;
@@ -16,7 +16,7 @@ mod auth_spec;
 mod token_spec;
 
 #[inline]
-pub fn parse_state<'a>(url: &'a Url) -> Result<Cow<'a, str>> {
+pub fn parse_state<'a>(url: &'a Url) -> OAuthResult<Cow<'a, str>> {
     single_param("state", url)
 }
 
@@ -29,14 +29,14 @@ pub fn maybe_single_param<'a>(name: &'static str, url: &'a Url) -> Option<Cow<'a
 }
 
 #[inline]
-pub fn single_param<'a>(name: &'static str, url: &'a Url) -> Result<Cow<'a, str>> {
+pub fn single_param<'a>(name: &'static str, url: &'a Url) -> OAuthResult<Cow<'a, str>> {
     match UrlQueryParams::from(url).get(name) {
         Some(v) => Ok(v.single()
-            .ok_or(Error::msg(
+            .ok_or(ErrorKind::msg(
                 "Bad Request: Expected Single Parameter, found many",
             ))?
             .clone()),
-        None => Err(Error::invalid_request(
+        None => Err(ErrorKind::invalid_request(
             Some(format!("Bad Request: Missing `{}`", name)),
             None,
         )),

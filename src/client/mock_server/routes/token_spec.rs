@@ -5,7 +5,7 @@ use super::token::{token as token_route, token_response, MOCK_TOKEN};
 use client::mock_server::*;
 use client::{MockReq, MockResp, TokenResponse};
 
-use errors::Error;
+use errors::ErrorKind;
 
 fn server() -> MockServer {
     MockServer::new()
@@ -31,9 +31,9 @@ mod happy_case {
 
     #[test]
     fn returns_a_response() {
-        let expected_resp =
-            MockResp::parse_access_token_response(&TokenResponse::new(MOCK_TOKEN, "bearer"))
-                .unwrap();
+        let expected_resp = MockResp::parse_access_token_response(&TokenResponse::new(
+            MOCK_TOKEN, "bearer",
+        )).unwrap();
 
         assert_that(&token_route(&server(), &request(params())))
             .is_ok()
@@ -70,8 +70,7 @@ mod happy_case {
         #[test]
         fn returns_a_response() {
             let expected_resp = MockResp::parse_access_token_response(&TokenResponse::new(
-                MOCK_TOKEN,
-                "bearer",
+                MOCK_TOKEN, "bearer",
             ).with_expiration(3600))
                 .unwrap();
 
@@ -100,8 +99,7 @@ mod happy_case {
         #[test]
         fn returns_a_response() {
             let expected_resp = MockResp::parse_access_token_response(&TokenResponse::new(
-                MOCK_TOKEN,
-                "bearer",
+                MOCK_TOKEN, "bearer",
             ).with_state(
                 "MOCK_STATE",
             )).unwrap();
@@ -117,7 +115,7 @@ mod errors {
     use super::*;
 
     fn server() -> MockServer {
-        MockServer::new().with_error(Error::msg("Server Error"))
+        MockServer::new().with_error(ErrorKind::msg("Server Error"))
     }
 
     fn params() -> Vec<(&'static str, &'static str)> {

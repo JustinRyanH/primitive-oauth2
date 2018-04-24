@@ -1,4 +1,4 @@
-use errors::Result;
+use errors::OAuthResult;
 use url::Url;
 use url_serde;
 
@@ -18,7 +18,7 @@ impl BaseAuthenticator {
         client_secret: S,
         auth_uri: R,
         token_uri: R,
-    ) -> Result<BaseAuthenticator> {
+    ) -> OAuthResult<BaseAuthenticator> {
         Ok(BaseAuthenticator {
             client_id: client_id.into(),
             client_secret: client_secret.into(),

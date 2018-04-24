@@ -1,6 +1,7 @@
-use client::mock_server::{ServerResp, routes::{auth_route, token_route}};
+use client::mock_server::{routes::{auth_route, token_route},
+                          ServerResp};
 use client::requests::MockReq;
-use errors::Error;
+use errors::ErrorKind;
 
 #[derive(Debug, PartialEq)]
 pub struct TokenOps {
@@ -55,7 +56,7 @@ impl Default for TokenOps {
 
 #[derive(Debug, PartialEq)]
 pub struct MockServer {
-    pub error: Option<Error>,
+    pub error: Option<ErrorKind>,
     pub redirect_uri_required: bool,
     pub code: &'static str,
     pub last_state: Option<&'static str>,
@@ -75,7 +76,7 @@ impl MockServer {
 
     pub fn with_error<T>(self, error: T) -> MockServer
     where
-        T: Into<Error>,
+        T: Into<ErrorKind>,
     {
         MockServer {
             error: Some(error.into()),
@@ -151,7 +152,7 @@ impl MockServer {
         match req.url.path() {
             "/auth" => auth_route(self, req),
             "/token" => token_route(self, req),
-            _ => ServerResp::response_err(&Error::msg("404: Route not found")),
+            _ => ServerResp::response_err(&ErrorKind::msg("404: Route not found")),
         }
     }
 }

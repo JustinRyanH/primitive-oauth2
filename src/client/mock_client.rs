@@ -2,11 +2,11 @@ use std::borrow::Cow;
 
 use url::Url;
 
-use client::OauthClient;
 use client::authenticator::BaseAuthenticator;
 use client::storage::{MockMemoryStorage, MockStorageKey};
+use client::OauthClient;
 use client::*;
-use errors::Result;
+use errors::OAuthResult;
 
 #[derive(Debug, Clone, PartialEq)]
 pub struct MockClient {
@@ -19,7 +19,7 @@ pub struct MockClient {
 }
 
 impl MockClient {
-    pub fn new<S: Into<String>>(auth: BaseAuthenticator, redirect: S) -> Result<MockClient> {
+    pub fn new<S: Into<String>>(auth: BaseAuthenticator, redirect: S) -> OAuthResult<MockClient> {
         Ok(MockClient {
             auth,
             scope: vec![],
@@ -82,7 +82,10 @@ impl OauthClient<MockMemoryStorage> for MockClient {
     type Request = MockReq;
     type Response = MockResp;
 
-    fn get_user_auth_request<'a>(&'a self, storage: &'a mut MockMemoryStorage) -> Result<MockReq> {
+    fn get_user_auth_request<'a>(
+        &'a self,
+        storage: &'a mut MockMemoryStorage,
+    ) -> OAuthResult<MockReq> {
         let mut params: Vec<(&str, Cow<'a, str>)> = vec![
             ("response_type", "code".into()),
             ("client_id", self.auth.get_client_id().into()),
@@ -110,7 +113,7 @@ impl OauthClient<MockMemoryStorage> for MockClient {
         )?))
     }
 
-    fn handle_auth_redirect(_req: MockReq, _storage: &mut MockMemoryStorage) -> Result<Self> {
+    fn handle_auth_redirect(_req: MockReq, _storage: &mut MockMemoryStorage) -> OAuthResult<Self> {
         // let data = match ValidReq::from_url(&req.url) {
         //     Ok(d) => d,
         //     Err(e) => return Err(e.into()),
@@ -126,11 +129,11 @@ impl OauthClient<MockMemoryStorage> for MockClient {
         unimplemented!()
     }
 
-    fn get_access_token_request(&self) -> Result<MockReq> {
+    fn get_access_token_request(&self) -> OAuthResult<MockReq> {
         unimplemented!()
     }
 
-    fn handle_token_response(self, _: MockResp, _: &mut MockMemoryStorage) -> Result<Self> {
+    fn handle_token_response(self, _: MockResp, _: &mut MockMemoryStorage) -> OAuthResult<Self> {
         unimplemented!()
     }
 }

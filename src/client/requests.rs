@@ -3,7 +3,7 @@ use url::Url;
 
 use client::params::UrlQueryParams;
 use client::responses::ErrorResponse;
-use errors::{Error, Result};
+use errors::{ErrorKind, OAuthResult};
 
 #[derive(Debug, PartialEq, Clone)]
 pub struct ValidReq<'a> {
@@ -12,7 +12,9 @@ pub struct ValidReq<'a> {
 }
 
 impl<'a> ValidReq<'a> {
-    pub fn from_url<T: Into<UrlQueryParams<'a>> + Clone>(into_params: &T) -> Result<ValidReq<'a>> {
+    pub fn from_url<T: Into<UrlQueryParams<'a>> + Clone>(
+        into_params: &T,
+    ) -> OAuthResult<ValidReq<'a>> {
         let params: UrlQueryParams = into_params.clone().into();
         let code: Cow<'a, str> = params
             .get("code")
@@ -37,11 +39,11 @@ pub struct MockReq {
 
 impl MockReq {
     // TODO: Repalce with FromStr trait
-    pub fn from_str<T: AsRef<str>>(s: T) -> Result<MockReq> {
+    pub fn from_str<T: AsRef<str>>(s: T) -> OAuthResult<MockReq> {
         Ok(Url::parse(s.as_ref())?.into())
     }
 
-    pub fn parse_error_req(url: &'static str, err: &Error) -> Result<MockReq> {
+    pub fn parse_error_req(url: &'static str, err: &ErrorKind) -> OAuthResult<MockReq> {
         Ok(Url::parse_with_params(url, ErrorResponse::from(err).into_iter())?.into())
     }
 
