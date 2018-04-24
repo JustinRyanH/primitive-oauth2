@@ -8,8 +8,9 @@ use client::OauthClient;
 use client::*;
 use errors::OAuthResult;
 
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct MockClient {
+    #[serde(flatten)]
     pub auth: BaseAuthenticator,
     pub scope: Vec<String>,
     pub redirect_uri: String,
