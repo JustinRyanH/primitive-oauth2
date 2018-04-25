@@ -1,3 +1,3 @@
-extern crate async_oauth2;
 extern crate dotenv;
 extern crate envy;
+extern crate primitive_oauth2;

@@ -1,5 +1,5 @@
 [package]
-name = "async-oauth2"
+name = "primitive-oauth2"
 version = "0.1.0"
 authors = ["Justin Hurst <jryanhurst@gmail.com>"]
 

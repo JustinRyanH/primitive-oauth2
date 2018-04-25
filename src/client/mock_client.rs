@@ -115,18 +115,6 @@ impl OauthClient<MockMemoryStorage> for MockClient {
     }
 
     fn handle_auth_redirect(_req: MockReq, _storage: &mut MockMemoryStorage) -> OAuthResult<Self> {
-        // let data = match ValidReq::from_url(&req.url) {
-        //     Ok(d) => d,
-        //     Err(e) => return Err(e.into()),
-        // };
-        // let code = data.code.clone();
-
-        // match data.state {
-        //     Some(state) => storage
-        //         .get(MockStorageKey::State(state))
-        //         .and_then(|c| Ok(c.with_code(code))),
-        //     None => MockClient::new().and_then(|c| Ok(c.with_code(code))),
-        // }
         unimplemented!()
     }
 
