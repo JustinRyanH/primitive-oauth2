@@ -14,8 +14,11 @@ pub struct MockClient {
     pub auth: BaseAuthenticator,
     pub scope: Vec<String>,
     pub redirect_uri: String,
+
     pub access_type: AccessType,
+    #[serde(skip)]
     pub code: Option<String>,
+    #[serde(skip)]
     pub state: Option<String>,
 }
 

@@ -13,10 +13,16 @@ pub mod mock_client_spec;
 pub use self::requests::MockReq;
 pub use self::responses::{ErrorResponse, MockResp, TokenResponse};
 
+use serde::{de::{Error as DeError, Unexpected},
+            Deserialize,
+            Deserializer,
+            Serialize,
+            Serializer};
+
 use errors::{ErrorKind, OAuthResult};
 use futures::future::Future;
 
-#[derive(Debug, Clone, Copy, PartialEq, Serialize, Deserialize, Hash)]
+#[derive(Debug, Clone, Copy, PartialEq, Hash)]
 pub enum AccessType {
     Implicit,
     Grant,
@@ -31,6 +37,36 @@ impl AccessType {
     }
 }
 
+impl Serialize for AccessType {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: Serializer,
+    {
+        serializer.serialize_str(match *self {
+            AccessType::Implicit => "implicit",
+            AccessType::Grant => "grant",
+        })
+    }
+}
+
+impl<'de> Deserialize<'de> for AccessType {
+    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+    where
+        D: Deserializer<'de>,
+    {
+        let s = String::deserialize(deserializer)?;
+        if s.as_str().to_lowercase() == "implicit" {
+            Ok(AccessType::Implicit)
+        } else if s.as_str().to_lowercase() == "grant" {
+            Ok(AccessType::Grant)
+        } else {
+            Err(DeError::invalid_value(
+                Unexpected::Str(&s.as_str().to_lowercase()),
+                &"Grant or Implicit",
+            ))
+        }
+    }
+}
 #[doc(hidden)]
 /// Convenience trait that convert `Future` object into `Boxed` future
 pub trait AsyncPacker<I, E>: Sized {
