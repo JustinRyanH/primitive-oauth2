@@ -1,0 +1,9 @@
+[package]
+name = "manual"
+version = "0.1.0"
+authors = ["Justin Hurst <jryanhurst@gmail.com>"]
+
+[dependencies]
+primitive-oauth2 = { path = "../.." }
+dotenv = "0.11.0"
+envy = "0.3.2"
