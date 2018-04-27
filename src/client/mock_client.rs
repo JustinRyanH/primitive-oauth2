@@ -1,7 +1,5 @@
 use std::borrow::Cow;
 
-use url::Url;
-
 use client::authenticator::BaseAuthenticator;
 use client::OauthClient;
 use client::*;
@@ -109,11 +107,10 @@ impl OauthClient for MockClient {
             params.push(("state", Cow::from(state.as_ref())));
             storage.set(Cow::from(state.clone()), self.clone())?;
         }
+        let mut out_url = self.auth.auth_uri.clone();
+        out_url.query_pairs_mut().extend_pairs(params);
 
-        Ok(MockReq::from(Url::parse_with_params(
-            "https://localhost",
-            params,
-        )?))
+        Ok(MockReq::from(out_url))
     }
 
     fn handle_auth_redirect<'a, S>(_req: MockReq, _storage: &mut S) -> OAuthResult<Self>

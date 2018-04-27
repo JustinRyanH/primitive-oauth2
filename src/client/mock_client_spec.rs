@@ -41,6 +41,20 @@ mod get_user_auth_request {
             MemoryStorage::new()
         }
 
+        mod request_host {
+            use super::*;
+
+            #[test]
+            fn it_sets_host_mock_clients_auth_uri() {
+                let mut storage = storage();
+                let req = mock_client().get_user_auth_request(&mut storage).unwrap();
+                assert_that(&req.url.host_str())
+                    .is_some()
+                    .is_equal_to("example.com");
+                assert_that(&req.url.scheme()).is_equal_to("http");
+            }
+        }
+
         mod response_type {
             use super::*;
 
