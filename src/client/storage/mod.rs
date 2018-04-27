@@ -1,19 +1,18 @@
 // #[cfg(test)]
 // mod spec;
 
-use std::collections::HashMap;
-use std::ops::Deref;
 use std::sync::{Arc, RwLock};
+use std::{borrow::Cow, collections::HashMap, ops::Deref};
 
 use client::mock_client::MockClient;
 use client::ClientStorage;
 use errors::{ErrorKind, OAuthResult};
 
 #[derive(Debug, Clone)]
-pub struct MockMemoryStorage(pub Arc<RwLock<HashMap<MockStorageKey, MockClient>>>);
+pub struct MockMemoryStorage<'a>(pub Arc<RwLock<HashMap<Cow<'a, str>, MockClient>>>);
 
-impl MockMemoryStorage {
-    pub fn new() -> MockMemoryStorage {
+impl<'a> MockMemoryStorage<'a> {
+    pub fn new() -> MockMemoryStorage<'a> {
         MockMemoryStorage(Arc::new(RwLock::new(HashMap::new())))
     }
 
@@ -25,59 +24,50 @@ impl MockMemoryStorage {
     }
 }
 
-#[derive(Debug, Clone, Eq, PartialEq, Serialize, Deserialize, Hash)]
-pub enum MockStorageKey {
-    State(String),
-    Uid(usize),
-}
+impl<'a> Deref for MockMemoryStorage<'a> {
+    type Target = RwLock<HashMap<Cow<'a, str>, MockClient>>;
 
-impl MockStorageKey {
-    pub fn state<S: Into<String>>(s: S) -> MockStorageKey {
-        MockStorageKey::State(s.into())
-    }
-
-    pub fn uid(n: usize) -> MockStorageKey {
-        MockStorageKey::Uid(n)
-    }
-}
-
-impl Deref for MockMemoryStorage {
-    type Target = RwLock<HashMap<MockStorageKey, MockClient>>;
-
-    fn deref(&self) -> &RwLock<HashMap<MockStorageKey, MockClient>> {
+    fn deref(&self) -> &RwLock<HashMap<Cow<'a, str>, MockClient>> {
         &self.0
     }
 }
 
-impl ClientStorage<MockClient> for MockMemoryStorage {
+impl<'a> ClientStorage<'a, MockClient> for MockMemoryStorage<'a> {
     type Error = ErrorKind;
-    type Lookup = MockStorageKey;
 
-    fn set(
-        &mut self,
-        lookup: MockStorageKey,
-        value: MockClient,
-    ) -> OAuthResult<Option<MockClient>> {
+    fn set<K>(&mut self, lookup: K, value: MockClient) -> OAuthResult<Option<MockClient>>
+    where
+        K: Into<Cow<'a, str>>,
+    {
         match self.0.write() {
-            Ok(ref mut hash) => Ok(hash.insert(lookup, value)),
+            Ok(ref mut hash) => Ok(hash.insert(lookup.into(), value)),
             Err(e) => Err(e.into()),
         }
     }
 
-    fn get(&self, lookup: MockStorageKey) -> OAuthResult<MockClient> {
+    fn get<K>(&self, lookup: K) -> OAuthResult<MockClient>
+    where
+        K: Into<Cow<'a, str>>,
+    {
         match self.0.read() {
-            Ok(hash) => hash.get(&lookup)
+            Ok(hash) => hash.get(&lookup.into())
                 .map(|c| c.clone())
                 .ok_or(ErrorKind::msg("No Client stored from the given lookup")),
             Err(e) => Err(e.into()),
         }
     }
 
-    fn drop(&mut self, _lookup: MockStorageKey) -> OAuthResult<MockClient> {
+    fn drop<K>(&mut self, _lookup: K) -> OAuthResult<MockClient>
+    where
+        K: Into<Cow<'a, str>>,
+    {
         unimplemented!()
     }
 
-    fn has(&self, _lookup: MockStorageKey) -> OAuthResult<bool> {
+    fn has<K>(&self, _lookup: K) -> OAuthResult<bool>
+    where
+        K: Into<Cow<'a, str>>,
+    {
         unimplemented!()
     }
 }

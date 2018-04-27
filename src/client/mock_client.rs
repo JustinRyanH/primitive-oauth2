@@ -3,7 +3,6 @@ use std::borrow::Cow;
 use url::Url;
 
 use client::authenticator::BaseAuthenticator;
-use client::storage::{MockMemoryStorage, MockStorageKey};
 use client::OauthClient;
 use client::*;
 use errors::OAuthResult;
@@ -82,15 +81,15 @@ impl MockClient {
     }
 }
 
-impl OauthClient<MockMemoryStorage> for MockClient {
+impl OauthClient for MockClient {
     type Request = MockReq;
     type Response = MockResp;
 
-    fn get_user_auth_request<'a>(
-        &'a self,
-        storage: &'a mut MockMemoryStorage,
-    ) -> OAuthResult<MockReq> {
-        let mut params: Vec<(&str, Cow<'a, str>)> = vec![
+    fn get_user_auth_request<'a, 'b, S>(&'b self, storage: &'a mut S) -> OAuthResult<MockReq>
+    where
+        S: ClientStorage<'a, Self>,
+    {
+        let mut params: Vec<(&str, Cow<'b, str>)> = vec![
             ("response_type", "code".into()),
             ("client_id", self.auth.get_client_id().into()),
             ("redirect_uri", Cow::from(self.redirect_uri.as_ref())),
@@ -108,7 +107,7 @@ impl OauthClient<MockMemoryStorage> for MockClient {
 
         if let Some(ref state) = self.state {
             params.push(("state", Cow::from(state.as_ref())));
-            storage.set(MockStorageKey::state(state.as_ref()), self.clone())?;
+            storage.set(Cow::from(state.clone()), self.clone())?;
         }
 
         Ok(MockReq::from(Url::parse_with_params(
@@ -117,7 +116,10 @@ impl OauthClient<MockMemoryStorage> for MockClient {
         )?))
     }
 
-    fn handle_auth_redirect(_req: MockReq, _storage: &mut MockMemoryStorage) -> OAuthResult<Self> {
+    fn handle_auth_redirect<'a, S>(_req: MockReq, _storage: &mut S) -> OAuthResult<Self>
+    where
+        S: ClientStorage<'a, Self>,
+    {
         unimplemented!()
     }
 
@@ -125,7 +127,10 @@ impl OauthClient<MockMemoryStorage> for MockClient {
         unimplemented!()
     }
 
-    fn handle_token_response(self, _: MockResp, _: &mut MockMemoryStorage) -> OAuthResult<Self> {
+    fn handle_token_response<'a, S>(self, _: MockResp, _: &mut S) -> OAuthResult<Self>
+    where
+        S: ClientStorage<'a, Self>,
+    {
         unimplemented!()
     }
 }

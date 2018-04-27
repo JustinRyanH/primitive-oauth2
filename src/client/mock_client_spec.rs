@@ -7,9 +7,6 @@ use spectral::prelude::*;
 use client::mock_client::MockClient;
 use client::params::UrlQueryParams;
 use client::storage::MockMemoryStorage;
-use client::storage::MockStorageKey;
-use client::MockReq;
-use errors::OAuthResult;
 
 mod get_user_auth_request {
     use super::*;
@@ -36,16 +33,11 @@ mod get_user_auth_request {
         MockClient::new(base_auth(), expected_redirect()).unwrap()
     }
 
-    #[inline]
-    fn get_request(client: &MockClient, storage: &mut MockMemoryStorage) -> OAuthResult<MockReq> {
-        client.get_user_auth_request(storage)
-    }
-
     mod code_grant_flow {
         use super::*;
 
         #[inline]
-        fn storage() -> MockMemoryStorage {
+        fn storage<'a>() -> MockMemoryStorage<'a> {
             MockMemoryStorage::new()
         }
 
@@ -55,7 +47,7 @@ mod get_user_auth_request {
             #[test]
             fn it_sets_param_response_type_to_code() {
                 let mut storage = storage();
-                let req = get_request(&mock_client(), &mut storage).unwrap();
+                let req = mock_client().get_user_auth_request(&mut storage).unwrap();
                 let params = UrlQueryParams::from(&req.url);
                 assert_that(&params)
                     .has_param("response_type")
@@ -70,7 +62,7 @@ mod get_user_auth_request {
             fn it_sets_param_client_id_to_given_code_type() {
                 let expected_client_id = base_auth().client_id;
                 let mut storage = storage();
-                let req = get_request(&mock_client(), &mut storage).unwrap();
+                let req = mock_client().get_user_auth_request(&mut storage).unwrap();
                 let params = UrlQueryParams::from(&req.url);
                 assert_that(&params)
                     .has_param("client_id")
@@ -85,7 +77,7 @@ mod get_user_auth_request {
             fn it_sets_param_client_id_to_given_code_type() {
                 let expected_redirect_uri = expected_redirect();
                 let mut storage = storage();
-                let req = get_request(&mock_client(), &mut storage).unwrap();
+                let req = mock_client().get_user_auth_request(&mut storage).unwrap();
                 let params = UrlQueryParams::from(&req.url);
                 assert_that(&params)
                     .has_param("redirect_uri")
@@ -108,7 +100,7 @@ mod get_user_auth_request {
                 #[test]
                 fn it_doesnt_supply_scope_in_params() {
                     let mut storage = storage();
-                    let req = get_request(&mock_client(), &mut storage).unwrap();
+                    let req = mock_client().get_user_auth_request(&mut storage).unwrap();
                     let params = UrlQueryParams::from(&req.url);
                     assert_that(&params).has_no_param("scope");
                 }
@@ -137,7 +129,7 @@ mod get_user_auth_request {
                 #[test]
                 fn it_supplies_scope_in_params() {
                     let mut storage = storage();
-                    let req = get_request(&mock_client(), &mut storage).unwrap();
+                    let req = mock_client().get_user_auth_request(&mut storage).unwrap();
                     let params = UrlQueryParams::from(&req.url);
                     assert_that(&params)
                         .has_param("scope")
@@ -171,19 +163,9 @@ mod get_user_auth_request {
                 #[test]
                 fn it_supplies_state_in_params() {
                     let mut storage = storage();
-                    let req = get_request(&mock_client(), &mut storage).unwrap();
+                    let req = mock_client().get_user_auth_request(&mut storage).unwrap();
                     let params = UrlQueryParams::from(&req.url);
                     assert_that(&params).has_param("state");
-                }
-
-                #[test]
-                fn it_persistes_the_client() {
-                    let mut storage = storage();
-                    assert_that(&*storage.read().unwrap()).is_empty();
-                    let req = get_request(&mock_client(), &mut storage);
-                    assert_that(&req).is_ok();
-                    assert_that(&*storage.read().unwrap())
-                        .contains_key(MockStorageKey::state(state()));
                 }
             }
             mod when_state_is_off {
@@ -197,7 +179,7 @@ mod get_user_auth_request {
                 #[test]
                 fn it_supplies_state_in_params() {
                     let mut storage = storage();
-                    let req = get_request(&mock_client(), &mut storage).unwrap();
+                    let req = mock_client().get_user_auth_request(&mut storage).unwrap();
                     let params = UrlQueryParams::from(&req.url);
                     assert_that(&params).has_no_param("state");
                 }
@@ -206,9 +188,8 @@ mod get_user_auth_request {
                 fn it_should_not_persist_the_client() {
                     let mut storage = storage();
                     assert_that(&*storage.read().unwrap()).is_empty();
-                    let req = get_request(&mock_client(), &mut storage);
+                    let req = mock_client().get_user_auth_request(&mut storage);
                     assert_that(&req).is_ok();
-                    assert_that(&*storage.read().unwrap()).is_empty();
                 }
             }
         }

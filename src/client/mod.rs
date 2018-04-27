@@ -13,6 +13,8 @@ pub mod mock_client_spec;
 pub use self::requests::MockReq;
 pub use self::responses::{ErrorResponse, MockResp, TokenResponse};
 
+use std::borrow::Cow;
+
 use serde::{de::{Error as DeError, Unexpected},
             Deserialize,
             Deserializer,
@@ -85,37 +87,51 @@ where
 
 /// The `OauthClient` trait allows to generate the key components for
 /// each of the [RFC 6749](https://tools.ietf.org/html/rfc6749) client side steps
-pub trait OauthClient<S>: Sized
-where
-    S: ClientStorage<Self>,
-{
+pub trait OauthClient: Sized {
     type Request;
     type Response;
     // TODO: Add Type Error
     /// Used to implement [4.1.1](https://tools.ietf.org/html/rfc6749#section-4.1.1) and
     /// [4.2.1](https://tools.ietf.org/html/rfc6749#section-4.2.1) Authorization Request
-    fn get_user_auth_request(&self, storage: &mut S) -> OAuthResult<Self::Request>;
+    fn get_user_auth_request<'a, 'b, S>(&'b self, storage: &'a mut S) -> OAuthResult<Self::Request>
+    where
+        S: ClientStorage<'a, Self>;
 
     /// Handles the [4.1.2](https://tools.ietf.org/html/rfc6749#section-4.1.2) Authorization Redirect Request
-    fn handle_auth_redirect(request: Self::Request, storage: &mut S) -> OAuthResult<Self>;
+    fn handle_auth_redirect<'a, S>(request: Self::Request, storage: &'a mut S) -> OAuthResult<Self>
+    where
+        S: ClientStorage<'a, Self>;
 
     /// Used to implement [4.1.3](https://tools.ietf.org/html/rfc6749#section-4.1.3) Token Request
     fn get_access_token_request(&self) -> OAuthResult<Self::Request>;
 
     /// Handles the [4.1.4](https://tools.ietf.org/html/rfc6749#section-4.1.4) Token Response
-    fn handle_token_response(self, response: Self::Response, storage: &mut S) -> OAuthResult<Self>;
+    fn handle_token_response<'a, S>(
+        self,
+        response: Self::Response,
+        storage: &'a mut S,
+    ) -> OAuthResult<Self>
+    where
+        S: ClientStorage<'a, Self>;
 
     // Used to implement [4.6](https://tools.ietf.org/html/rfc6749#section-4.1.4) Token Refresh Reqeust
     // fn get_token_refresh_request(self, response: Self::Response) -> FutureResult<Self, Error>;
 }
 
 /// Used to Storage Client between the authentication Steps
-pub trait ClientStorage<C: Sized + OauthClient<Self>>: Sized {
+pub trait ClientStorage<'a, C: Sized + OauthClient>: Sized {
     type Error;
-    type Lookup;
 
-    fn set(&mut self, lookup: Self::Lookup, value: C) -> OAuthResult<Option<C>>;
-    fn get(&self, lookup: Self::Lookup) -> OAuthResult<C>;
-    fn drop(&mut self, lookup: Self::Lookup) -> OAuthResult<C>;
-    fn has(&self, lookup: Self::Lookup) -> OAuthResult<bool>;
+    fn set<K>(&mut self, lookup: K, value: C) -> OAuthResult<Option<C>>
+    where
+        K: Into<Cow<'a, str>>;
+    fn get<K>(&self, lookup: K) -> OAuthResult<C>
+    where
+        K: Into<Cow<'a, str>>;
+    fn drop<K>(&mut self, lookup: K) -> OAuthResult<C>
+    where
+        K: Into<Cow<'a, str>>;
+    fn has<K>(&self, lookup: K) -> OAuthResult<bool>
+    where
+        K: Into<Cow<'a, str>>;
 }
