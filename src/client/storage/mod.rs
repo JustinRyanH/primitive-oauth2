@@ -9,11 +9,11 @@ use client::ClientStorage;
 use errors::{ErrorKind, OAuthResult};
 
 #[derive(Debug, Clone)]
-pub struct MockMemoryStorage<'a>(pub Arc<RwLock<HashMap<Cow<'a, str>, MockClient>>>);
+pub struct MemoryStorage<'a>(pub Arc<RwLock<HashMap<Cow<'a, str>, MockClient>>>);
 
-impl<'a> MockMemoryStorage<'a> {
-    pub fn new() -> MockMemoryStorage<'a> {
-        MockMemoryStorage(Arc::new(RwLock::new(HashMap::new())))
+impl<'a> MemoryStorage<'a> {
+    pub fn new() -> MemoryStorage<'a> {
+        MemoryStorage(Arc::new(RwLock::new(HashMap::new())))
     }
 
     pub fn len(&self) -> OAuthResult<usize> {
@@ -24,7 +24,7 @@ impl<'a> MockMemoryStorage<'a> {
     }
 }
 
-impl<'a> Deref for MockMemoryStorage<'a> {
+impl<'a> Deref for MemoryStorage<'a> {
     type Target = RwLock<HashMap<Cow<'a, str>, MockClient>>;
 
     fn deref(&self) -> &RwLock<HashMap<Cow<'a, str>, MockClient>> {
@@ -32,7 +32,7 @@ impl<'a> Deref for MockMemoryStorage<'a> {
     }
 }
 
-impl<'a> ClientStorage<'a, MockClient> for MockMemoryStorage<'a> {
+impl<'a> ClientStorage<'a, MockClient> for MemoryStorage<'a> {
     type Error = ErrorKind;
 
     fn set<K>(&mut self, lookup: K, value: MockClient) -> OAuthResult<Option<MockClient>>

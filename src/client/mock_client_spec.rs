@@ -6,7 +6,7 @@ use spectral::prelude::*;
 
 use client::mock_client::MockClient;
 use client::params::UrlQueryParams;
-use client::storage::MockMemoryStorage;
+use client::storage::MemoryStorage;
 
 mod get_user_auth_request {
     use super::*;
@@ -37,8 +37,8 @@ mod get_user_auth_request {
         use super::*;
 
         #[inline]
-        fn storage<'a>() -> MockMemoryStorage<'a> {
-            MockMemoryStorage::new()
+        fn storage<'a>() -> MemoryStorage<'a> {
+            MemoryStorage::new()
         }
 
         mod response_type {
