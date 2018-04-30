@@ -1,9 +1,10 @@
 use std::borrow::Cow;
 
 use client::authenticator::BaseAuthenticator;
+use client::params::UrlQueryParams;
 use client::OauthClient;
 use client::*;
-use errors::OAuthResult;
+use errors::{ErrorKind, OAuthResult};
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct MockClient {
@@ -113,21 +114,26 @@ impl OauthClient for MockClient {
         Ok(MockReq::from(out_url))
     }
 
-    fn handle_auth_redirect<'a, S>(_req: MockReq, _storage: &mut S) -> OAuthResult<Self>
+    fn handle_auth_redirect<'a, S>(
+        _state_required: bool,
+        req: MockReq,
+        _storage: &mut S,
+    ) -> OAuthResult<Self>
     where
         S: ClientStorage<'a, Self>,
     {
-        unimplemented!()
+        // let params = UrlQueryParams::from(req.url.query_pairs());
+        Err(ErrorKind::msg("`handle_auth_redirect` is not implemented"))
     }
 
     fn get_access_token_request(&self) -> OAuthResult<MockReq> {
-        unimplemented!()
+        Err(ErrorKind::msg("`handle_auth_redirect` is not implemented"))
     }
 
     fn handle_token_response<'a, S>(self, _: MockResp, _: &mut S) -> OAuthResult<Self>
     where
         S: ClientStorage<'a, Self>,
     {
-        unimplemented!()
+        Err(ErrorKind::msg("`handle_auth_redirect` is not implemented"))
     }
 }

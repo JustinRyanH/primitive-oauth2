@@ -35,8 +35,6 @@ Phase 2.1.2 - Mock Client - [Code Grant](https://tools.ietf.org/html/rfc6749#sec
 ---
 - [ ] User specifies in Mock Client State generator
 - [x] 4.1.2 Make Auth Request
-  - [x] With State
-    - [ ] Assert it stores in state
 - [ ] 4.1.2 Handle Auth Response
   - [ ]  4.1.2.0 Happy
   - [ ]  4.1.2.1 Error
@@ -78,6 +76,7 @@ Phase 3
 
 Phase 4
 ---
+- [ ] Auth Stage can have extra configurable parameters
 - [ ] Google Implementation
 - [ ] Facebook Implementation
 - [ ] Github Implementation
@@ -97,8 +96,9 @@ Phase 5
 
 Side Tasks
 ---
-- [ ] Drop `error_chain`, it's getting gross
+- [x] Drop `error_chain`, it's getting gross
 - [ ] Replace all instances of String with `Cow<'a, str>`
+- [ ] Client Manager (Handles State or not)
 
 Temp
 ---

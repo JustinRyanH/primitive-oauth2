@@ -98,7 +98,11 @@ pub trait OauthClient: Sized {
         S: ClientStorage<'a, Self>;
 
     /// Handles the [4.1.2](https://tools.ietf.org/html/rfc6749#section-4.1.2) Authorization Redirect Request
-    fn handle_auth_redirect<'a, S>(request: Self::Request, storage: &'a mut S) -> OAuthResult<Self>
+    fn handle_auth_redirect<'a, S>(
+        state_required: bool,
+        request: Self::Request,
+        storage: &'a mut S,
+    ) -> OAuthResult<Self>
     where
         S: ClientStorage<'a, Self>;
 

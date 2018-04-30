@@ -4,9 +4,17 @@ use std::borrow::Cow;
 use assertions::*;
 use spectral::prelude::*;
 
+use url::Url;
+
 use client::mock_client::MockClient;
 use client::params::UrlQueryParams;
+use client::requests::MockReq;
 use client::storage::MemoryStorage;
+
+#[inline]
+fn storage<'a>() -> MemoryStorage<'a> {
+    MemoryStorage::new()
+}
 
 mod get_user_auth_request {
     use super::*;
@@ -35,11 +43,6 @@ mod get_user_auth_request {
 
     mod code_grant_flow {
         use super::*;
-
-        #[inline]
-        fn storage<'a>() -> MemoryStorage<'a> {
-            MemoryStorage::new()
-        }
 
         mod request_host {
             use super::*;
@@ -220,13 +223,38 @@ mod get_user_auth_request {
 }
 
 mod handle_auth_redirect {
+    use super::*;
+    use client::OauthClient;
+
     mod when_happy {
+        use super::*;
+
         mod when_there_is_state {
-            mod code {}
+
+            use super::*;
+
+            fn params() -> Vec<(&'static str, &'static str)> {
+                vec![("code", "MOCK_CODE"), ("state", "MOCK_STATE")]
+            }
+
+            fn request() -> MockReq {
+                Url::parse_with_params("https://localhost", params())
+                    .unwrap()
+                    .into()
+            }
+            mod code {
+                use super::*;
+
+                #[test]
+                fn it_sets_host_mock_clients_auth_uri() {
+                    let mut storage = storage();
+                    let req = request();
+                    let resp = MockClient::handle_auth_redirect(false, req, &mut storage);
+                    assert_that(&resp).is_ok();
+                }
+            }
         }
-        mod when_there_is_no_state {
-            mod code {}
-        }
+
     }
     mod when_error {}
 }
