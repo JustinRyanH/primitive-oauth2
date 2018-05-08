@@ -77,6 +77,11 @@ pub enum ErrorKind {
     /// with additional details about the failure
     InvalidScope(Option<String>, Option<String>),
 
+    /// `InvalidState` is when the returned state does not match up with a client
+    ///
+    /// * `state` - Returns the given state in the error
+    InvalidState(String),
+
     /// `ParseError` error parsing a Url into ErrorKind
     ParseError(url::ParseError),
     /// `
@@ -115,8 +120,13 @@ impl fmt::Display for ErrorKind {
             ),
             ErrorKind::InvalidScope(ref desc, ref uri) => write!(
                 f,
-                "The Given scope scope was invalid: Desc({:?}), Uri({:?})",
+                "The Given scope was invalid: Desc({:?}), Uri({:?})",
                 desc, uri
+            ),
+            ErrorKind::InvalidState(ref state) => write!(
+                f,
+                "The Given of {:?} is not a valid state",
+                state
             ),
             ErrorKind::ParseError(ref error) => write!(f, "ParseError: {}", error),
             ErrorKind::UnknownError(ref error) => write!(f, "{:?}", error),
@@ -165,6 +175,7 @@ impl Error for ErrorKind {
                 "The requested scope is invalid, unknown, malformed, or \
                  exceeds the scope granted by the resource owner."
             }
+            ErrorKind::InvalidState(_) => "Errors when looking up clients by State",
             ErrorKind::ParseError(_) => "Errors parsing the URI",
             ErrorKind::UnknownError(_) => "Errors too lazy to specify",
         }
@@ -225,6 +236,9 @@ impl ErrorKind {
     }
     pub fn invalid_scope<T: Into<String>>(desc: Option<T>, uri: Option<T>) -> ErrorKind {
         ErrorKind::InvalidScope(desc.map(|v| v.into()), uri.map(|v| v.into()))
+    }
+    pub fn invalid_state<T: Into<String>>(state: T) -> ErrorKind {
+        ErrorKind::InvalidState(state.into())
     }
 }
 

@@ -122,18 +122,27 @@ impl OauthClient for MockClient {
     where
         S: ClientStorage<'a, Self>,
     {
-        // let params = UrlQueryParams::from(req.url.query_pairs());
-        Err(ErrorKind::msg("`handle_auth_redirect` is not implemented"))
+        let params = UrlQueryParams::from(req.url.query_pairs());
+        if let Some(grant_type) = params.get("grant_type") {
+            MockClient::new(
+                BaseAuthenticator::default(),
+                "https://localhost:8080/redirect",
+            )
+        } else {
+            Err(ErrorKind::msg("`handle_auth_redirect` is not implemented"))
+        }
     }
 
     fn get_access_token_request(&self) -> OAuthResult<MockReq> {
-        Err(ErrorKind::msg("`handle_auth_redirect` is not implemented"))
+        Err(ErrorKind::msg(
+            "`get_access_token_request` is not implemented",
+        ))
     }
 
     fn handle_token_response<'a, S>(self, _: MockResp, _: &mut S) -> OAuthResult<Self>
     where
         S: ClientStorage<'a, Self>,
     {
-        Err(ErrorKind::msg("`handle_auth_redirect` is not implemented"))
+        Err(ErrorKind::msg("`handle_token_response` is not implemented"))
     }
 }

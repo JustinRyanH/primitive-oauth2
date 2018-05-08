@@ -230,11 +230,18 @@ mod handle_auth_redirect {
         use super::*;
 
         mod when_there_is_state {
-
+            /// Assertions
+            /// When Code is not supplied -> Fail with Invalid Request
+            /// When Client w/ State is stored -> Get existing State -> Assert it is Removed
+            /// When Client w/ State is not stored -> Fail with an InvalidState
             use super::*;
 
             fn params() -> Vec<(&'static str, &'static str)> {
-                vec![("code", "MOCK_CODE"), ("state", "MOCK_STATE")]
+                vec![
+                    ("code", "MOCK_CODE"),
+                    ("state", "MOCK_STATE"),
+                    ("grant_type", "code"),
+                ]
             }
 
             fn request() -> MockReq {
@@ -251,6 +258,8 @@ mod handle_auth_redirect {
                     let req = request();
                     let resp = MockClient::handle_auth_redirect(false, req, &mut storage);
                     assert_that(&resp).is_ok();
+                    let client = resp.unwrap();
+                    assert_that(&client).has_code();
                 }
             }
         }
