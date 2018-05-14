@@ -5,6 +5,7 @@ mod spec;
 use std::collections::HashMap;
 use std::iter::FromIterator;
 use std::ops::Deref;
+use std::string::ToString;
 
 use url;
 
@@ -41,6 +42,23 @@ impl<'a> ParamValue<'a> {
             &ParamValue::Multi(ref v) => Some(v),
             _ => None,
         }
+    }
+}
+
+impl<'a> ToString for ParamValue<'a> {
+    fn to_string(&self) -> String {
+        match self {
+            ParamValue::Single(value) => value.to_string(),
+            ParamValue::Multi(values) => values
+                .iter()
+                .fold(String::new(), |out, each| out + &format!(",{}", each)),
+        }
+    }
+}
+
+impl<'a> Into<String> for ParamValue<'a> {
+    fn into(self) -> String {
+        self.to_string()
     }
 }
 

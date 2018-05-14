@@ -1,4 +1,5 @@
 use std::borrow::Cow;
+use std::string::ToString;
 
 use client::authenticator::BaseAuthenticator;
 use client::params::UrlQueryParams;
@@ -124,12 +125,13 @@ impl OauthClient for MockClient {
     {
         let params = UrlQueryParams::from(req.url.query_pairs());
         if let Some(grant_type) = params.get("grant_type") {
-            MockClient::new(
-                BaseAuthenticator::default(),
-                "https://localhost:8080/redirect",
-            )
+            if let Some(single_type) = grant_type.single() {
+                return Err(ErrorKind::msg("On Right Path"));
+            } else {
+                return Err(ErrorKind::msg("`handle_auth_redirect` is not implemented"));
+            }
         } else {
-            Err(ErrorKind::msg("`handle_auth_redirect` is not implemented"))
+            return Err(ErrorKind::msg("`handle_auth_redirect` is not implemented"));
         }
     }
 

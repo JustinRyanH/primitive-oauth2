@@ -15,12 +15,11 @@ pub use self::responses::{ErrorResponse, MockResp, TokenResponse};
 
 use std::borrow::Cow;
 
-use serde::{de::{Error as DeError, Unexpected},
-            Deserialize,
-            Deserializer,
-            Serialize,
-            Serializer};
+use serde::{
+    de::{Error as DeError, Unexpected}, Deserialize, Deserializer, Serialize, Serializer,
+};
 
+use client::params::ParamValue;
 use errors::{ErrorKind, OAuthResult};
 use futures::future::Future;
 
@@ -30,11 +29,30 @@ pub enum AccessType {
     Grant,
 }
 
+// This can totally be a Trait and we can make AccessType
+// automagical
 impl AccessType {
     pub fn get_response_type(&self) -> &'static str {
         match self {
             &AccessType::Implicit => "token",
             &AccessType::Grant => "code",
+        }
+    }
+
+    pub fn get_grant_type(&self) -> &'static str {
+        match self {
+            &AccessType::Implicit => "refresh_token",
+            &AccessType::Grant => "authorization_code",
+        }
+    }
+
+    pub fn from_param_value<'a>(param: &ParamValue<'a>) -> OAuthResult<AccessType> {
+        match param.to_string().as_ref() {
+            "authorization_code" => Ok(AccessType::Grant),
+            _ => Err(ErrorKind::invalid_grant(
+                Some(format!("`{:?}` is not a valid grant tpye", param)),
+                None,
+            )),
         }
     }
 }
