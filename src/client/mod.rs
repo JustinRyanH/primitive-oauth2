@@ -13,8 +13,6 @@ pub mod mock_client_spec;
 pub use self::requests::MockReq;
 pub use self::responses::{ErrorResponse, MockResp, TokenResponse};
 
-use std::borrow::Cow;
-
 use serde::{
     de::{Error as DeError, Unexpected}, Deserialize, Deserializer, Serialize, Serializer,
 };
@@ -146,14 +144,14 @@ pub trait ClientStorage<'a, C: Sized + OauthClient>: Sized {
 
     fn set<K>(&mut self, lookup: K, value: C) -> OAuthResult<Option<C>>
     where
-        K: Into<Cow<'a, str>>;
+        K: Into<String>;
     fn get<K>(&self, lookup: K) -> OAuthResult<C>
     where
-        K: Into<Cow<'a, str>>;
+        K: Into<String>;
     fn drop<K>(&mut self, lookup: K) -> OAuthResult<C>
     where
-        K: Into<Cow<'a, str>>;
+        K: Into<String>;
     fn has<K>(&self, lookup: K) -> OAuthResult<bool>
     where
-        K: Into<Cow<'a, str>>;
+        K: Into<String>;
 }

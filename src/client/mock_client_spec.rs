@@ -12,7 +12,7 @@ use client::requests::MockReq;
 use client::storage::MemoryStorage;
 
 #[inline]
-fn storage<'a>() -> MemoryStorage<'a> {
+fn storage() -> MemoryStorage {
     MemoryStorage::new()
 }
 

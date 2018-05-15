@@ -118,20 +118,38 @@ impl OauthClient for MockClient {
     fn handle_auth_redirect<'a, S>(
         _state_required: bool,
         req: MockReq,
-        _storage: &mut S,
+        storage: &mut S,
     ) -> OAuthResult<Self>
     where
         S: ClientStorage<'a, Self>,
     {
         let params = UrlQueryParams::from(req.url.query_pairs());
-        if let Some(grant_type) = params.get("grant_type") {
-            if let Some(single_type) = grant_type.single() {
-                return Err(ErrorKind::msg("On Right Path"));
-            } else {
-                return Err(ErrorKind::msg("`handle_auth_redirect` is not implemented"));
+        let grant_type = match params.get("grant_type") {
+            // TODO: Path me
+            Some(grant_type) => grant_type
+                .single()
+                .ok_or(ErrorKind::unsupported_grant_type(
+                    Some("`grant_type` requires a single string"),
+                    None,
+                ))?,
+            // TODO: Path me
+            None => {
+                return Err(ErrorKind::invalid_request(
+                    Some("`grant_type` required for request"),
+                    None,
+                ))
             }
-        } else {
-            return Err(ErrorKind::msg("`handle_auth_redirect` is not implemented"));
+        };
+
+        match params.get("state") {
+            Some(state) => {
+                let single_state = state.single().ok_or(ErrorKind::invalid_request(
+                    Some("`state` must be a single parameter"),
+                    None,
+                ))?;
+                storage.get(single_state.clone().into_owned())
+            }
+            None => Err(ErrorKind::msg("`handle_auth_redirect` is not implemented")),
         }
     }
 

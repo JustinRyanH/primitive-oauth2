@@ -2,17 +2,17 @@
 // mod spec;
 
 use std::sync::{Arc, RwLock};
-use std::{borrow::Cow, collections::HashMap, ops::Deref};
+use std::{collections::HashMap, ops::Deref};
 
 use client::mock_client::MockClient;
 use client::ClientStorage;
 use errors::{ErrorKind, OAuthResult};
 
 #[derive(Debug, Clone)]
-pub struct MemoryStorage<'a>(pub Arc<RwLock<HashMap<Cow<'a, str>, MockClient>>>);
+pub struct MemoryStorage(pub Arc<RwLock<HashMap<String, MockClient>>>);
 
-impl<'a> MemoryStorage<'a> {
-    pub fn new() -> MemoryStorage<'a> {
+impl<'a> MemoryStorage {
+    pub fn new() -> MemoryStorage {
         MemoryStorage(Arc::new(RwLock::new(HashMap::new())))
     }
 
@@ -24,20 +24,20 @@ impl<'a> MemoryStorage<'a> {
     }
 }
 
-impl<'a> Deref for MemoryStorage<'a> {
-    type Target = RwLock<HashMap<Cow<'a, str>, MockClient>>;
+impl<'a> Deref for MemoryStorage {
+    type Target = RwLock<HashMap<String, MockClient>>;
 
-    fn deref(&self) -> &RwLock<HashMap<Cow<'a, str>, MockClient>> {
+    fn deref(&self) -> &RwLock<HashMap<String, MockClient>> {
         &self.0
     }
 }
 
-impl<'a> ClientStorage<'a, MockClient> for MemoryStorage<'a> {
+impl<'a> ClientStorage<'a, MockClient> for MemoryStorage {
     type Error = ErrorKind;
 
     fn set<K>(&mut self, lookup: K, value: MockClient) -> OAuthResult<Option<MockClient>>
     where
-        K: Into<Cow<'a, str>>,
+        K: Into<String>,
     {
         match self.0.write() {
             Ok(ref mut hash) => Ok(hash.insert(lookup.into(), value)),
@@ -47,7 +47,7 @@ impl<'a> ClientStorage<'a, MockClient> for MemoryStorage<'a> {
 
     fn get<K>(&self, lookup: K) -> OAuthResult<MockClient>
     where
-        K: Into<Cow<'a, str>>,
+        K: Into<String>,
     {
         match self.0.read() {
             Ok(hash) => hash.get(&lookup.into())
@@ -59,14 +59,14 @@ impl<'a> ClientStorage<'a, MockClient> for MemoryStorage<'a> {
 
     fn drop<K>(&mut self, _lookup: K) -> OAuthResult<MockClient>
     where
-        K: Into<Cow<'a, str>>,
+        K: Into<String>,
     {
         unimplemented!()
     }
 
     fn has<K>(&self, _lookup: K) -> OAuthResult<bool>
     where
-        K: Into<Cow<'a, str>>,
+        K: Into<String>,
     {
         unimplemented!()
     }

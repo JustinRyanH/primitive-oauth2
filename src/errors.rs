@@ -213,6 +213,9 @@ impl From<serde_json::Error> for ErrorKind {
     }
 }
 
+// TODO: Remove the optional for first description
+// TODO: Inline all of theses
+
 impl ErrorKind {
     pub fn msg<T: Into<String>>(m: T) -> ErrorKind {
         ErrorKind::UnknownError(m.into())
