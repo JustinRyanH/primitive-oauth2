@@ -126,13 +126,7 @@ impl OauthClient for MockClient {
         let params = UrlQueryParams::from(req.url.query_pairs());
         let grant_type = match params.get("grant_type") {
             // TODO: Path me
-            Some(grant_type) => grant_type
-                .single()
-                .ok_or(ErrorKind::unsupported_grant_type(
-                    Some("`grant_type` requires a single string"),
-                    None,
-                ))?,
-            // TODO: Path me
+            Some(param) => AccessType::from_param_value(param)?,
             None => {
                 return Err(ErrorKind::invalid_request(
                     Some("`grant_type` required for request"),
@@ -147,7 +141,10 @@ impl OauthClient for MockClient {
                     Some("`state` must be a single parameter"),
                     None,
                 ))?;
-                storage.get(single_state.clone().into_owned())
+                match grant_type {
+                    _ => return Err(ErrorKind::msg("`handle_auth_redirect` is not implemented")),
+                };
+                // storage.get(single_state.clone().into_owned())
             }
             None => Err(ErrorKind::msg("`handle_auth_redirect` is not implemented")),
         }

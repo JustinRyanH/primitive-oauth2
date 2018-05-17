@@ -45,10 +45,14 @@ impl AccessType {
     }
 
     pub fn from_param_value<'a>(param: &ParamValue<'a>) -> OAuthResult<AccessType> {
-        match param.to_string().as_ref() {
+        let result = param.single().ok_or(ErrorKind::unsupported_grant_type(
+            Some("`grant_type` requires a single string"),
+            None,
+        ))?;
+        match result.as_ref() {
             "authorization_code" => Ok(AccessType::Grant),
             _ => Err(ErrorKind::invalid_grant(
-                Some(format!("`{:?}` is not a valid grant tpye", param)),
+                Some(format!("`{:?}` is not a valid grant type", param)),
                 None,
             )),
         }
