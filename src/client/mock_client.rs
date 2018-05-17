@@ -142,9 +142,24 @@ impl OauthClient for MockClient {
                     None,
                 ))?;
                 match grant_type {
+                    AccessType::Grant => {
+                        let code = params
+                            .get("code")
+                            .ok_or(ErrorKind::invalid_request(
+                                Some("`code` is required for `authorization_code` request"),
+                                None,
+                            ))?
+                            .single()
+                            .ok_or(ErrorKind::invalid_request(
+                                Some("`code` must be formatted as a single request param"),
+                                None,
+                            ))?;
+                        return Ok(storage
+                            .get(single_state.clone().into_owned())?
+                            .with_code(code.clone().into_owned()));
+                    }
                     _ => return Err(ErrorKind::msg("`handle_auth_redirect` is not implemented")),
                 };
-                // storage.get(single_state.clone().into_owned())
             }
             None => Err(ErrorKind::msg("`handle_auth_redirect` is not implemented")),
         }
