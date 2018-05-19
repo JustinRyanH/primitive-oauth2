@@ -232,20 +232,16 @@ mod get_user_auth_request {
 
 mod handle_auth_redirect {
     use super::*;
-    use client::OauthClient;
 
     mod when_happy {
         use super::*;
 
         mod when_there_is_state {
-            /// Assertions
-            /// When Code is not supplied -> Fail with Invalid Request
-            /// When Client w/ State is stored -> Get existing State -> Assert it is Removed
-            /// When Client w/ State is not stored -> Fail with an InvalidState
             use super::*;
             use client::ClientStorage;
+            use client::OauthClient;
 
-            #[inline]
+            /// Assertions
             fn mock_client() -> MockClient {
                 MockClient::new(base_auth(), expected_redirect())
                     .unwrap()
@@ -281,6 +277,15 @@ mod handle_auth_redirect {
                 assert_that(&resp).is_ok();
                 let client = resp.unwrap();
                 assert_that(&client).has_code();
+            }
+
+            #[test]
+            fn it_cleans_up_old_mock_client_when_state_is_used() {
+                let mut storage = storage();
+                let req = request();
+                let resp = MockClient::handle_auth_redirect(false, req, &mut storage);
+                assert_that(&resp).is_ok();
+                assert_that(&storage.get("MOCK_STATE")).is_err();
             }
         }
 

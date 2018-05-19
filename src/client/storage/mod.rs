@@ -1,5 +1,5 @@
-// #[cfg(test)]
-// mod spec;
+#[cfg(test)]
+mod spec;
 
 use std::sync::{Arc, RwLock};
 use std::{collections::HashMap, ops::Deref};
@@ -40,7 +40,7 @@ impl<'a> ClientStorage<'a, MockClient> for MemoryStorage {
         K: Into<String>,
     {
         match self.0.write() {
-            Ok(ref mut hash) => Ok(hash.insert(lookup.into(), value)),
+            Ok(mut hash) => Ok(hash.insert(lookup.into(), value)),
             Err(e) => Err(e.into()),
         }
     }
@@ -57,11 +57,15 @@ impl<'a> ClientStorage<'a, MockClient> for MemoryStorage {
         }
     }
 
-    fn drop<K>(&mut self, _lookup: K) -> OAuthResult<MockClient>
+    fn drop<K>(&mut self, lookup: K) -> OAuthResult<MockClient>
     where
         K: Into<String>,
     {
-        unimplemented!()
+        match self.0.write() {
+            Ok(mut hash) => hash.remove(&lookup.into())
+                .ok_or(ErrorKind::msg("No Client stored from the given lookup")),
+            Err(e) => Err(e.into()),
+        }
     }
 
     fn has<K>(&self, _lookup: K) -> OAuthResult<bool>

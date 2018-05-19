@@ -3,15 +3,36 @@ use futures::Future;
 use futures_cpupool::CpuPool;
 use spectral::prelude::*;
 
+use client::authenticator::BaseAuthenticator;
+use client::mock_client::MockClient;
+use client::storage::MemoryStorage;
 #[allow(unused_imports)]
 use client::ClientStorage;
-use client::mock_client::MockClient;
-use client::storage::{MockMemoryStorage, MockStorageKey};
+
+#[inline]
+fn base_auth() -> BaseAuthenticator {
+    BaseAuthenticator::new(
+        "someid@example.com",
+        "test",
+        "http://example.com/auth",
+        "http://example.com/token",
+    ).unwrap()
+}
+
+#[inline]
+fn expected_redirect() -> &'static str {
+    "https://localhost:8080/oauth/example"
+}
+
+#[inline]
+fn mock_client() -> MockClient {
+    MockClient::new(base_auth(), expected_redirect()).unwrap()
+}
 
 mod given_a_memory_storage {
     use super::*;
 
-    type Subject = MockMemoryStorage;
+    type Subject = MemoryStorage;
 
     #[derive(Debug, Clone)]
     struct Env {
@@ -27,7 +48,7 @@ mod given_a_memory_storage {
     mod when_store_is_empty {
         use super::*;
         fn subject() -> Subject {
-            let storage = MockMemoryStorage::new();
+            let storage = MemoryStorage::new();
             assert_that(&*storage.read().unwrap()).is_empty();
             storage
         }
@@ -35,11 +56,9 @@ mod given_a_memory_storage {
         #[test]
         fn client_storage_set() {
             let mut subject = subject();
-            let client = MockClient::new().unwrap();
-            let action = subject.set(MockStorageKey::state("foo"), client);
-
-            env().pool.spawn(action).wait().unwrap();
-            assert_that(&*subject.read().unwrap()).contains_key(MockStorageKey::state("foo"));
+            let client = mock_client();
+            let action = subject.set("foo", client).unwrap();
+            assert_that(&*subject.read().unwrap()).contains_key(&String::from("foo"));
         }
     }
 
@@ -48,22 +67,26 @@ mod given_a_memory_storage {
         use std::ops::Deref;
 
         fn subject() -> Subject {
-            let storage = MockMemoryStorage::new();
-            storage.deref().write().unwrap().insert(
-                MockStorageKey::state("EXAMPLE_STATE"),
-                MockClient::new().unwrap(),
-            );
-            assert_that(&*storage.read().unwrap())
-                .contains_key(MockStorageKey::state("EXAMPLE_STATE"));
+            let storage = MemoryStorage::new();
+            storage
+                .deref()
+                .write()
+                .unwrap()
+                .insert(String::from("EXAMPLE_STATE"), mock_client());
+            assert_that(&*storage.read().unwrap()).contains_key(String::from("EXAMPLE_STATE"));
             storage
         }
 
         #[test]
         fn client_storage_get() {
             let subject = subject();
-            let action = subject.get(MockStorageKey::state("EXAMPLE_STATE"));
+            assert_that(&subject.get("EXAMPLE_STATE")).is_ok();
+        }
 
-            assert_that(&env().pool.spawn(action).wait()).is_ok();
+        #[test]
+        fn client_storage_drop() {
+            let mut subject = subject();
+            assert_that(&subject.drop("EXAMPLE_STATE")).is_ok();
         }
     }
 

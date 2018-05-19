@@ -141,6 +141,7 @@ impl OauthClient for MockClient {
                     Some("`state` must be a single parameter"),
                     None,
                 ))?;
+                // TODO: This should be handled by a generic AccessType
                 match grant_type {
                     AccessType::Grant => {
                         let code = params
@@ -154,8 +155,9 @@ impl OauthClient for MockClient {
                                 Some("`code` must be formatted as a single request param"),
                                 None,
                             ))?;
+
                         return Ok(storage
-                            .get(single_state.clone().into_owned())?
+                            .drop(single_state.clone().into_owned())?
                             .with_code(code.clone().into_owned()));
                     }
                     _ => return Err(ErrorKind::msg("`handle_auth_redirect` is not implemented")),
