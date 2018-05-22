@@ -238,62 +238,96 @@ mod handle_auth_redirect {
 
         mod when_there_is_state {
             use super::*;
-            use client::ClientStorage;
-            use client::OauthClient;
 
-            /// Assertions
-            fn mock_client() -> MockClient {
-                MockClient::new(base_auth(), expected_redirect())
-                    .unwrap()
-                    .with_state("MOCK_STATE")
+            mod when_state_in_storage {
+                use super::*;
+                use client::ClientStorage;
+                use client::OauthClient;
+
+                /// Assertions
+                fn mock_client() -> MockClient {
+                    MockClient::new(base_auth(), expected_redirect())
+                        .unwrap()
+                        .with_state("MOCK_STATE")
+                }
+
+                #[inline]
+                fn storage() -> MemoryStorage {
+                    let mut storage = MemoryStorage::new();
+                    storage.set("MOCK_STATE", mock_client()).unwrap();
+                    return storage;
+                }
+
+                fn params() -> Vec<(&'static str, &'static str)> {
+                    vec![
+                        ("code", "MOCK_CODE"),
+                        ("state", "MOCK_STATE"),
+                        ("grant_type", "authorization_code"),
+                    ]
+                }
+
+                fn request() -> MockReq {
+                    Url::parse_with_params("https://localhost", params())
+                        .unwrap()
+                        .into()
+                }
+
+                #[test]
+                fn it_sets_host_mock_clients_auth_uri() {
+                    let mut storage = storage();
+                    let req = request();
+                    let resp = MockClient::handle_auth_redirect(false, req, &mut storage);
+                    assert_that(&resp).is_ok();
+                    let client = resp.unwrap();
+                    assert_that(&client).has_code();
+                }
+
+                #[test]
+                fn it_cleans_up_old_mock_client_when_state_is_used() {
+                    let mut storage = storage();
+                    let req = request();
+                    let resp = MockClient::handle_auth_redirect(false, req, &mut storage);
+                    assert_that(&resp).is_ok();
+                    assert_that(&storage.get("MOCK_STATE")).is_err();
+                }
             }
 
-            #[inline]
-            fn storage() -> MemoryStorage {
-                let mut storage = MemoryStorage::new();
-                storage.set("MOCK_STATE", mock_client()).unwrap();
-                return storage;
+            mod when_state_is_not_in_storage {
+                use super::*;
+                use client::OauthClient;
+
+                #[inline]
+                fn storage() -> MemoryStorage {
+                    MemoryStorage::new()
+                }
+
+                fn request() -> MockReq {
+                    Url::parse_with_params("https://localhost", params())
+                        .unwrap()
+                        .into()
+                }
+
+                fn params() -> Vec<(&'static str, &'static str)> {
+                    vec![
+                        ("code", "MOCK_CODE"),
+                        ("state", "MOCK_STATE"),
+                        ("grant_type", "authorization_code"),
+                    ]
+                }
+
+                #[test]
+                fn it_returns_an_error() {
+                    let mut storage = storage();
+                    let req = request();
+                    let resp = MockClient::handle_auth_redirect(false, req, &mut storage);
+                    assert_that(&resp).is_err();
+                }
             }
 
-            fn params() -> Vec<(&'static str, &'static str)> {
-                vec![
-                    ("code", "MOCK_CODE"),
-                    ("state", "MOCK_STATE"),
-                    ("grant_type", "authorization_code"),
-                ]
-            }
-
-            fn request() -> MockReq {
-                Url::parse_with_params("https://localhost", params())
-                    .unwrap()
-                    .into()
-            }
-
-            #[test]
-            fn it_sets_host_mock_clients_auth_uri() {
-                let mut storage = storage();
-                let req = request();
-                let resp = MockClient::handle_auth_redirect(false, req, &mut storage);
-                assert_that(&resp).is_ok();
-                let client = resp.unwrap();
-                assert_that(&client).has_code();
-            }
-
-            #[test]
-            fn it_cleans_up_old_mock_client_when_state_is_used() {
-                let mut storage = storage();
-                let req = request();
-                let resp = MockClient::handle_auth_redirect(false, req, &mut storage);
-                assert_that(&resp).is_ok();
-                assert_that(&storage.get("MOCK_STATE")).is_err();
-            }
         }
 
     }
     mod when_error {}
 }
 
-mod get_access_token_request {
-    mod when_valid_token_response {}
-    mod when_not_valid_token_response {}
-}
+mod get_access_token_request {}

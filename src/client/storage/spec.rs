@@ -1,6 +1,5 @@
 #[allow(unused_imports)]
 use futures::Future;
-use futures_cpupool::CpuPool;
 use spectral::prelude::*;
 
 use client::authenticator::BaseAuthenticator;
@@ -34,17 +33,6 @@ mod given_a_memory_storage {
 
     type Subject = MemoryStorage;
 
-    #[derive(Debug, Clone)]
-    struct Env {
-        pub pool: CpuPool,
-    }
-
-    fn env() -> Env {
-        Env {
-            pool: CpuPool::new(1),
-        }
-    }
-
     mod when_store_is_empty {
         use super::*;
         fn subject() -> Subject {
@@ -57,7 +45,7 @@ mod given_a_memory_storage {
         fn client_storage_set() {
             let mut subject = subject();
             let client = mock_client();
-            let action = subject.set("foo", client).unwrap();
+            subject.set("foo", client).unwrap();
             assert_that(&*subject.read().unwrap()).contains_key(&String::from("foo"));
         }
     }

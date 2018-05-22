@@ -35,12 +35,12 @@ Phase 2.1.2 - Mock Client - [Code Grant](https://tools.ietf.org/html/rfc6749#sec
 ---
 - [ ] User specifies in Mock Client State generator
 - [x] 4.1.2 Make Auth Request
-- [ ] 4.1.2 Handle Auth Response
-  - [ ]  4.1.2.0 Happy
-  - [ ]  4.1.2.1 Error
-  - [ ] With State
-    - [ ] Assert it retrieves from Storage
-    - [ ] Assert it fails if not in Storage
+- [x] 4.1.2 Handle Auth Response
+  - [x]  4.1.2.0 Happy
+  - [x]  4.1.2.1 Error
+  - [x] With State
+    - [x] Assert it retrieves from Storage
+    - [x] Assert it fails if not in Storage
   - [ ] Without State
     - [ ] Assert it makes new Client 
 - [ ] 4.1.3 Make Access Token Request
