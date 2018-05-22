@@ -327,7 +327,38 @@ mod handle_auth_redirect {
         }
 
     }
-    mod when_error {}
 }
 
-mod get_access_token_request {}
+mod get_access_token_request {
+    use super::*;
+    mod code_grant_flow {
+        use super::*;
+
+        mod with_code {
+            use super::*;
+            use client::OauthClient;
+
+            fn mock_client() -> MockClient {
+                MockClient::new(base_auth(), expected_redirect())
+                    .unwrap()
+                    .with_state("MOCK_STATE")
+                    .with_code("MOCK_CODE")
+            }
+
+            #[test]
+            fn it_returns_new_request() {
+                let client = mock_client();
+                assert_that(&client.get_access_token_request()).is_ok();
+            }
+        }
+
+        mod without_code {}
+
+        mod with_state {}
+
+        mod without_state {}
+
+    }
+
+    mod implicit_flow {}
+}
