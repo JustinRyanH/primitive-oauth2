@@ -169,9 +169,28 @@ impl OauthClient for MockClient {
     }
 
     fn get_access_token_request(&self) -> OAuthResult<MockReq> {
-        Err(ErrorKind::msg(
-            "`get_access_token_request` is not implemented",
-        ))
+        let mut request_url = self.auth.token_uri.clone();
+        let access_type = self.access_type;
+        match access_type {
+            AccessType::Grant => {
+                let code = self.code.clone().ok_or(ErrorKind::msg(
+                    "`code` was not set for token request. It is required for implicit flow",
+                ))?;
+                let mut params: Vec<(&str, String)> = vec![
+                    ("code", code),
+                    ("grant_type", access_type.get_grant_type().into()),
+                    ("client_id", self.auth.client_id.clone()),
+                    ("redirect_uri", self.redirect_uri.clone()),
+                ];
+                request_url.query_pairs_mut().extend_pairs(params);
+                Ok(MockReq::from(request_url))
+            }
+            AccessType::Implicit => {
+                return Err(ErrorKind::msg(
+                    "`get_access_token_request` implicit flow not handled",
+                ));
+            }
+        }
     }
 
     fn handle_token_response<'a, S>(self, _: MockResp, _: &mut S) -> OAuthResult<Self>

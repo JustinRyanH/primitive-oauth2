@@ -20,11 +20,16 @@ fn storage() -> MemoryStorage {
 #[inline]
 fn base_auth() -> BaseAuthenticator {
     BaseAuthenticator::new(
-        "someid@example.com",
+        expected_client_id(),
         "test",
         "http://example.com/auth",
         "http://example.com/token",
     ).unwrap()
+}
+
+#[inline]
+fn expected_client_id() -> &'static str {
+    "someid@example.com"
 }
 
 #[inline]
@@ -334,21 +339,73 @@ mod get_access_token_request {
     mod code_grant_flow {
         use super::*;
 
+        /// Specs out Happy Case for [Access Token Request](https://tools.ietf.org/html/rfc6749#section-4.1.3)
         mod with_code {
             use super::*;
             use client::OauthClient;
 
             fn mock_client() -> MockClient {
-                MockClient::new(base_auth(), expected_redirect())
+                let mock_client = MockClient::new(base_auth(), expected_redirect())
                     .unwrap()
                     .with_state("MOCK_STATE")
-                    .with_code("MOCK_CODE")
+                    .with_code("MOCK_CODE");
+
+                assert_that(&mock_client.auth.client_id).is_equal_to(&expected_client_id().into());
+                assert_that(&mock_client.redirect_uri).is_equal_to(&expected_redirect().into());
+
+                return mock_client;
             }
 
             #[test]
-            fn it_returns_new_request() {
+            fn it_required_to_have_grant_type() {
                 let client = mock_client();
-                assert_that(&client.get_access_token_request()).is_ok();
+                let request_result = client.get_access_token_request();
+                assert_that(&request_result).is_ok();
+                let request = request_result.unwrap();
+                let params = UrlQueryParams::from(&request.url);
+                assert_that(&params)
+                    .has_param("grant_type")
+                    .have_a_single_value()
+                    .is_equal_to(Cow::from("authorization_code"));
+            }
+
+            #[test]
+            fn it_required_to_have_a_code() {
+                let client = mock_client();
+                let request_result = client.get_access_token_request();
+                assert_that(&request_result).is_ok();
+                let request = request_result.unwrap();
+                let params = UrlQueryParams::from(&request.url);
+                assert_that(&params)
+                    .has_param("code")
+                    .have_a_single_value()
+                    .is_equal_to(Cow::from("MOCK_CODE"));
+            }
+
+            #[test]
+            fn it_required_to_have_a_redirect_url() {
+                let client = mock_client();
+                let request_result = client.get_access_token_request();
+                assert_that(&request_result).is_ok();
+                let request = request_result.unwrap();
+                let params = UrlQueryParams::from(&request.url);
+                assert_that(&params)
+                    .has_param("redirect_uri")
+                    .have_a_single_value()
+                    .is_equal_to(Cow::from(expected_redirect()));
+            }
+
+            #[test]
+            fn it_required_to_have_client_id() {
+                let client = mock_client();
+                let request_result = client.get_access_token_request();
+                assert_that(&request_result).is_ok();
+                let request = request_result.unwrap();
+                let params = UrlQueryParams::from(&request.url);
+                assert_that(&params)
+                    .has_param("client_id")
+                    .have_a_single_value()
+                    .is_equal_to(Cow::from(expected_client_id()));
             }
         }
 
