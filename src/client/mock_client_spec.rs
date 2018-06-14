@@ -340,7 +340,7 @@ mod get_access_token_request {
         use super::*;
 
         /// Specs out Happy Case for [Access Token Request](https://tools.ietf.org/html/rfc6749#section-4.1.3)
-        mod with_code {
+        mod happy_case {
             use super::*;
             use client::OauthClient;
 
@@ -357,7 +357,7 @@ mod get_access_token_request {
             }
 
             #[test]
-            fn it_required_to_have_grant_type() {
+            fn it_has_a_grant_type_in_params() {
                 let client = mock_client();
                 let request_result = client.get_access_token_request();
                 assert_that(&request_result).is_ok();
@@ -370,7 +370,7 @@ mod get_access_token_request {
             }
 
             #[test]
-            fn it_required_to_have_a_code() {
+            fn it_has_a_code_in_params() {
                 let client = mock_client();
                 let request_result = client.get_access_token_request();
                 assert_that(&request_result).is_ok();
@@ -383,7 +383,7 @@ mod get_access_token_request {
             }
 
             #[test]
-            fn it_required_to_have_a_redirect_url() {
+            fn it_has_a_redirect_url_in_params() {
                 let client = mock_client();
                 let request_result = client.get_access_token_request();
                 assert_that(&request_result).is_ok();
@@ -396,7 +396,7 @@ mod get_access_token_request {
             }
 
             #[test]
-            fn it_required_to_have_client_id() {
+            fn it_has_to_have_client_id_in_params() {
                 let client = mock_client();
                 let request_result = client.get_access_token_request();
                 assert_that(&request_result).is_ok();
@@ -409,9 +409,34 @@ mod get_access_token_request {
             }
         }
 
-        mod without_code {}
+        mod without_code {
+            use super::*;
+            use client::OauthClient;
+            use errors::ErrorKind;
 
-        mod with_state {}
+            fn mock_client() -> MockClient {
+                let mock_client = MockClient::new(base_auth(), expected_redirect())
+                    .unwrap()
+                    .with_state("MOCK_STATE");
+
+                assert_that(&mock_client.auth.client_id).is_equal_to(&expected_client_id().into());
+                assert_that(&mock_client.redirect_uri).is_equal_to(&expected_redirect().into());
+
+                return mock_client;
+            }
+
+            #[test]
+            fn it_has_a_grant_type_in_params() {
+                let client = mock_client();
+                let request_result = client.get_access_token_request();
+                assert_that(&request_result)
+                    .is_err()
+                    .is_equal_to(&ErrorKind::msg(
+                        "`code` was not set for token request. It is required for explciit flow",
+                    ));
+            }
+
+        }
 
         mod without_state {}
 

@@ -174,7 +174,7 @@ impl OauthClient for MockClient {
         match access_type {
             AccessType::Grant => {
                 let code = self.code.clone().ok_or(ErrorKind::msg(
-                    "`code` was not set for token request. It is required for implicit flow",
+                    "`code` was not set for token request. It is required for explciit flow",
                 ))?;
                 let mut params: Vec<(&str, String)> = vec![
                     ("code", code),
@@ -182,6 +182,7 @@ impl OauthClient for MockClient {
                     ("client_id", self.auth.client_id.clone()),
                     ("redirect_uri", self.redirect_uri.clone()),
                 ];
+
                 request_url.query_pairs_mut().extend_pairs(params);
                 Ok(MockReq::from(request_url))
             }
