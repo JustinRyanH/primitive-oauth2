@@ -21,7 +21,7 @@ fn storage() -> MemoryStorage {
 fn base_auth() -> BaseAuthenticator {
     BaseAuthenticator::new(
         expected_client_id(),
-        "test",
+        expected_client_secret(),
         "http://example.com/auth",
         "http://example.com/token",
     ).unwrap()
@@ -33,8 +33,18 @@ fn expected_client_id() -> &'static str {
 }
 
 #[inline]
+fn expected_client_secret() -> &'static str {
+    "secret"
+}
+
+#[inline]
 fn expected_redirect() -> &'static str {
     "https://localhost:8080/oauth/example"
+}
+
+#[inline]
+fn expected_token_uri() -> &'static str {
+    "http://example.com/token"
 }
 
 mod get_user_auth_request {
@@ -351,8 +361,12 @@ mod get_access_token_request {
                     .with_code("MOCK_CODE");
 
                 assert_that(&mock_client.auth.client_id).is_equal_to(&expected_client_id().into());
-                assert_that(&mock_client.redirect_uri).is_equal_to(&expected_redirect().into());
+                assert_that(&mock_client.auth.client_secret)
+                    .is_equal_to(&expected_client_secret().into());
 
+                assert_that(&mock_client.redirect_uri).is_equal_to(&expected_redirect().into());
+                assert_that(&mock_client.auth.token_uri)
+                    .is_equal_to(&Url::parse(expected_token_uri()).unwrap());
                 return mock_client;
             }
 
@@ -435,11 +449,7 @@ mod get_access_token_request {
                         "`code` was not set for token request. It is required for explciit flow",
                     ));
             }
-
         }
-
-        mod without_state {}
-
     }
 
     mod implicit_flow {}
