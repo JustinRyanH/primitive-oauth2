@@ -12,7 +12,6 @@ use client::ClientStorage;
 fn base_auth() -> BaseAuthenticator {
     BaseAuthenticator::new(
         "someid@example.com",
-        "test",
         "http://example.com/auth",
         "http://example.com/token",
     ).unwrap()

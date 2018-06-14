@@ -21,7 +21,6 @@ fn storage() -> MemoryStorage {
 fn base_auth() -> BaseAuthenticator {
     BaseAuthenticator::new(
         expected_client_id(),
-        expected_client_secret(),
         "http://example.com/auth",
         "http://example.com/token",
     ).unwrap()
@@ -355,14 +354,16 @@ mod get_access_token_request {
             use client::OauthClient;
 
             fn mock_client() -> MockClient {
-                let mock_client = MockClient::new(base_auth(), expected_redirect())
-                    .unwrap()
+                let mock_client = MockClient::new(
+                    base_auth().with_secret(expected_client_secret()),
+                    expected_redirect(),
+                ).unwrap()
                     .with_state("MOCK_STATE")
                     .with_code("MOCK_CODE");
 
                 assert_that(&mock_client.auth.client_id).is_equal_to(&expected_client_id().into());
                 assert_that(&mock_client.auth.client_secret)
-                    .is_equal_to(&expected_client_secret().into());
+                    .is_equal_to(&Some(expected_client_secret().into()));
 
                 assert_that(&mock_client.redirect_uri).is_equal_to(&expected_redirect().into());
                 assert_that(&mock_client.auth.token_uri)
@@ -450,6 +451,10 @@ mod get_access_token_request {
                     ));
             }
         }
+
+        mod with_secret {}
+
+        mod without_secret {}
     }
 
     mod implicit_flow {}
