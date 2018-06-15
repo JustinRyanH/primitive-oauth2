@@ -183,6 +183,10 @@ impl OauthClient for MockClient {
                     ("redirect_uri", self.redirect_uri.clone()),
                 ];
 
+                if let Some(secret) = self.auth.client_secret.clone() {
+                    params.push(("client_secret", secret))
+                }
+
                 request_url.query_pairs_mut().extend_pairs(params);
                 Ok(MockReq::from(request_url))
             }

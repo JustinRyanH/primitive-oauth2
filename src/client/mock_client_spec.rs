@@ -452,7 +452,36 @@ mod get_access_token_request {
             }
         }
 
-        mod with_secret {}
+        mod with_secret {
+            use super::*;
+            use client::OauthClient;
+
+            fn mock_client() -> MockClient {
+                let mock_client = MockClient::new(
+                    base_auth().with_secret(expected_client_secret()),
+                    expected_redirect(),
+                ).unwrap()
+                    .with_state("MOCK_STATE")
+                    .with_code("MOCK_CODE");
+
+                assert_that(&mock_client.auth.client_secret)
+                    .is_equal_to(&Some(expected_client_secret().into()));
+                return mock_client;
+            }
+
+            #[test]
+            fn it_has_a_secret_in_the_params() {
+                let client = mock_client();
+                let request_result = client.get_access_token_request();
+                assert_that(&request_result).is_ok();
+                let request = request_result.unwrap();
+                let params = UrlQueryParams::from(&request.url);
+                assert_that(&params)
+                    .has_param("client_secret")
+                    .have_a_single_value()
+                    .is_equal_to(Cow::from(expected_client_secret()));
+            }
+        }
 
         mod without_secret {}
     }
