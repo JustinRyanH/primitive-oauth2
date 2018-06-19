@@ -510,3 +510,7 @@ mod get_access_token_request {
 
     mod implicit_flow {}
 }
+
+mod handle_token_response {
+    use super::*;
+}

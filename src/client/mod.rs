@@ -6,6 +6,7 @@ pub mod params;
 pub mod requests;
 pub mod responses;
 pub mod storage;
+pub mod token;
 
 #[cfg(test)]
 pub mod mock_client_spec;
@@ -20,6 +21,14 @@ use serde::{
 use client::params::ParamValue;
 use errors::{ErrorKind, OAuthResult};
 use futures::future::Future;
+
+pub struct Token {
+    access_type: String,
+    token_type: String,
+    expires_in: Option<usize>,
+    refresh_token: Option<String>,
+    scope: Vec<String>,
+}
 
 #[derive(Debug, Clone, Copy, PartialEq, Hash)]
 pub enum AccessType {

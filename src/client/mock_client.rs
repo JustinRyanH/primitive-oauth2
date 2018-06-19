@@ -3,6 +3,7 @@ use std::string::ToString;
 
 use client::authenticator::BaseAuthenticator;
 use client::params::UrlQueryParams;
+use client::token::Token;
 use client::OauthClient;
 use client::*;
 use errors::{ErrorKind, OAuthResult};
@@ -19,6 +20,8 @@ pub struct MockClient {
     pub code: Option<String>,
     #[serde(skip)]
     pub state: Option<String>,
+    #[serde(skip)]
+    pub token: Option<Token>,
 }
 
 impl MockClient {
@@ -30,6 +33,7 @@ impl MockClient {
             access_type: AccessType::Grant,
             code: None,
             state: None,
+            token: None,
         })
     }
 
@@ -41,6 +45,7 @@ impl MockClient {
             redirect_uri: self.redirect_uri,
             access_type: self.access_type,
             state: self.state,
+            token: self.token,
         }
     }
 
@@ -52,6 +57,7 @@ impl MockClient {
             redirect_uri: self.redirect_uri,
             state: self.state,
             scope,
+            token: self.token,
         }
     }
 
@@ -66,6 +72,7 @@ impl MockClient {
             redirect_uri: self.redirect_uri,
             scope: self.scope,
             state: Some(state.into()),
+            token: self.token,
         }
     }
 
@@ -77,6 +84,7 @@ impl MockClient {
             redirect_uri: self.redirect_uri,
             scope: self.scope,
             state: None,
+            token: self.token,
         }
     }
 }
