@@ -4,3 +4,7 @@
 /target/
 **/*.rs.bk
 Cargo.lock
+.vscode
+.idea/
+/examples/**/target
+/examples/**/.env

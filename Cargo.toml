@@ -1,17 +1,22 @@
 [package]
-name = "async-oauth2"
+name = "primitive-oauth2"
 version = "0.1.0"
 authors = ["Justin Hurst <jryanhurst@gmail.com>"]
+license = "Apache-2.0"
 
 [dependencies]
 futures = "0.1.18"
 
 # Data Serialization
-serde = "~1"
-serde_derive = "~1"
+serde = "1.0.36"
+serde_derive = "1.0.36"
+serde_json = "1.0.13"
+
 url = "1.7.0"
+url_serde = "0.2"
 
 [dev_dependencies]
-rspec = "1.0.0-beta.4"
+futures-cpupool = "~0.1"
 envy = "0.3"
 dotenv =  "~0.11"
+spectral = "0.6.0"

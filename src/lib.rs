@@ -1,3 +1,28 @@
-extern crate url;
-extern crate futures;
+//! Used for Implementation Agnostic Asynchronous
+//! Oauth2 Clients
+#![recursion_limit = "256"]
 
+extern crate futures;
+extern crate serde_json;
+extern crate url;
+extern crate url_serde;
+
+extern crate serde;
+#[macro_use]
+extern crate serde_derive;
+
+pub mod client;
+pub mod errors;
+
+// SPEC ONLY CRATES
+#[cfg(test)]
+pub mod assertions;
+#[cfg(test)]
+extern crate dotenv;
+#[cfg(test)]
+extern crate envy;
+#[cfg(test)]
+extern crate futures_cpupool;
+
+#[cfg(test)]
+extern crate spectral;
