@@ -3,7 +3,7 @@ use std::string::ToString;
 
 use client::authenticator::BaseAuthenticator;
 use client::params::UrlQueryParams;
-use client::token::Token;
+use client::responses::Token;
 use client::OauthClient;
 use client::*;
 use errors::{ErrorKind, OAuthResult};

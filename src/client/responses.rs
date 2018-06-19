@@ -11,8 +11,8 @@ impl MockResp {
         Ok(serde_json::to_string::<ErrorResponse>(&ErrorResponse::from(err))?.into())
     }
 
-    pub fn parse_access_token_response(token: &TokenResponse) -> OAuthResult<MockResp> {
-        Ok(serde_json::to_string::<TokenResponse>(token)?.into())
+    pub fn parse_access_token_response(token: &Token) -> OAuthResult<MockResp> {
+        Ok(serde_json::to_string::<Token>(token)?.into())
     }
 }
 
@@ -27,7 +27,7 @@ where
 
 /// [4.2.2.  Access Token Response](https://tools.ietf.org/html/rfc6749#section-4.2.2)
 #[derive(Debug, PartialEq, Clone, Serialize, Deserialize)]
-pub struct TokenResponse {
+pub struct Token {
     pub access_token: String,
     pub token_type: String,
 
@@ -41,9 +41,9 @@ pub struct TokenResponse {
     pub state: Option<String>,
 }
 
-impl TokenResponse {
-    pub fn new<T: Into<String>, S: Into<String>>(access_token: T, token_type: S) -> TokenResponse {
-        TokenResponse {
+impl Token {
+    pub fn new<T: Into<String>, S: Into<String>>(access_token: T, token_type: S) -> Token {
+        Token {
             access_token: access_token.into(),
             token_type: token_type.into(),
             expires_in: None,
@@ -52,8 +52,8 @@ impl TokenResponse {
         }
     }
 
-    pub fn with_state<T: Into<String>>(self, state: T) -> TokenResponse {
-        TokenResponse {
+    pub fn with_state<T: Into<String>>(self, state: T) -> Token {
+        Token {
             access_token: self.access_token,
             token_type: self.token_type,
             expires_in: self.expires_in,
@@ -62,8 +62,8 @@ impl TokenResponse {
         }
     }
 
-    pub fn with_scope<T: Clone + Into<String>>(self, scope: &Vec<T>) -> TokenResponse {
-        TokenResponse {
+    pub fn with_scope<T: Clone + Into<String>>(self, scope: &Vec<T>) -> Token {
+        Token {
             access_token: self.access_token,
             token_type: self.token_type,
             expires_in: self.expires_in,
@@ -72,8 +72,8 @@ impl TokenResponse {
         }
     }
 
-    pub fn with_expiration(self, expiration: usize) -> TokenResponse {
-        TokenResponse {
+    pub fn with_expiration(self, expiration: usize) -> Token {
+        Token {
             access_token: self.access_token,
             token_type: self.token_type,
             expires_in: Some(expiration),

@@ -10,6 +10,7 @@ use client::authenticator::BaseAuthenticator;
 use client::mock_client::MockClient;
 use client::params::UrlQueryParams;
 use client::requests::MockReq;
+use client::responses::MockResp;
 use client::storage::MemoryStorage;
 
 #[inline]
@@ -513,4 +514,37 @@ mod get_access_token_request {
 
 mod handle_token_response {
     use super::*;
+    use client::responses::Token;
+    use client::OauthClient;
+    use serde_json;
+
+    fn mock_client() -> MockClient {
+        let mock_client = MockClient::new(base_auth(), expected_redirect())
+            .unwrap()
+            .with_state("MOCK_STATE")
+            .with_code("MOCK_CODE");
+
+        return mock_client;
+    }
+
+    fn base_auth() -> BaseAuthenticator {
+        BaseAuthenticator::new(
+            expected_client_id(),
+            "http://example.com/auth",
+            "http://example.com/token",
+        ).unwrap()
+            .with_secret("MOCK_SECRET")
+    }
+
+    fn token() -> String {
+        serde_json::to_string_pretty(&Token::new("FAKE_TOKEN", "bearer")).unwrap()
+    }
+
+    #[test]
+    fn it_adds_token_to_client() {
+        let client = mock_client();
+        let mut storage = storage();
+        let resp = client.handle_token_response(token().into(), &mut storage);
+        assert_that(&resp).is_ok();
+    }
 }
